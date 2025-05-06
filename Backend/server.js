@@ -1,36 +1,27 @@
 import express from "express";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes.js";
-import connectDB from "./config/connectDB.js";
-
-const app = express();
 dotenv.config();
 
-// middlewares
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+import { connectDB } from "./config/db.js";
+import modelVariantRoutes from "./routes/modelVariantRoutes.js";
+import stageNameRoutes from "./routes/stageNameRoutes.js";
+import hourlySummaryRoutes from "./routes/hourlySummaryRoutes.js";
 
-const corsOptions = {
-  origin: "http://localhost:5173",
-  credentials: true,
-};
-app.use(cors(corsOptions));
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Connect to DB
+connectDB();
 
 // APIs
-app.use("/api/v1/auth", authRoutes);
+app.use("/api", modelVariantRoutes);
+app.use("/api", stageNameRoutes);
+app.use("/api", hourlySummaryRoutes);
 
-app.get("/", (req, res) => {
-  return res.status(200).json({
-    message: "Hello from server",
-    success: true,
-  });
-});
-
-const PORT = process.env.PORT || 3000;
+// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  connectDB();
-  console.log(`Server is running on port: ${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

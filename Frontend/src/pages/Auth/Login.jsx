@@ -3,20 +3,15 @@ import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../redux/authSlice.js";
-import toast from "react-hot-toast";
+
+// import toast from "react-hot-toast";
 
 const Login = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.auth);
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  console.log(formData);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -29,30 +24,12 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const result = await dispatch(loginUser(formData));
-
-      if (result.meta.requestStatus === "fulfilled") {
-        toast.success("Login successful!");
-        navigate("/");
-        // Redirect based on role
-        // switch (result.payload.role) {
-        //   case "admin":
-        //     navigate("/admin/dashboard");
-        //     break;
-        //   case "manager":
-        //     navigate("/manager/dashboard");
-        //     break;
-        //   case "user":
-        //     navigate("/user/dashboard");
-        //     break;
-        //   default:
-        //     navigate("/");
-        // }
-      } else {
-        toast.error(result.payload || "Login failed!");
-      }
+      // if () {
+      // } else {
+      //   toast.error(result.payload || "Login failed!");
+      // }
     } catch (err) {
-      toast.error(err || "An unexpected error occurred!");
+      // toast.error(err || "An unexpected error occurred!");
     }
   };
 

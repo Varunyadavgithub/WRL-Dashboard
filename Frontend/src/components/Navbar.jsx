@@ -9,7 +9,7 @@ function NavBar() {
         <Link to="/" className="flex items-center">
           <img src={assets.logo} alt="Western Logo" className="h-10 w-auto mr-3" />
           <h1 className="text-2xl font-bold text-blue-800 tracking-wide">
-            Western Refrigeration
+            Western Refrigeration Pvt.Ltd
           </h1>
         </Link>
         <div className="flex items-center gap-2 border-gray-700">

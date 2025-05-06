@@ -15,7 +15,7 @@ const SelectField = ({
         name={name} // ✅ set the name attribute properly
         value={value}
         onChange={onChange}
-        className={`w-full px-3 py-2 border rounded-md bg-white ${className}`}
+        className={`w-full p-1 border rounded-md bg-white ${className}`}
       >
         <option value="">Select {label}</option>
         {options.map((opt, idx) => (

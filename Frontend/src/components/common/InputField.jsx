@@ -12,11 +12,11 @@ const InputField = ({
   widthClass,
 }) => {
   return (
-    <div className={`mt-4 ${className || ""}`}>
+    <div className={`${className || ""}`}>
       {label && <label className="block font-semibold mb-1">{label}</label>}
       <input
         type={type || "text"}
-        className={`px-3 py-2 border rounded-md focus:outline-none ${
+        className={`p-1 border rounded-md focus:outline-none ${
           widthClass || "w-full"
         }`}
         placeholder={placeholder}

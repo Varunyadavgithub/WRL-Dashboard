@@ -3,10 +3,9 @@ import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
-import { useDispatch } from "react-redux";
-import { signupUser } from "../../redux/authSlice.js";
+
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -30,11 +29,11 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(signupUser(formData)).unwrap();
-      toast.success("Signup successful!");
-      navigate("/login");
+      // await dispatch(signupUser(formData)).unwrap();
+      // toast.success("Signup successful!");
+      // navigate("/login");
     } catch (error) {
-      toast.error(error || "Signup failed!");
+      // toast.error(error || "Signup failed!");
     }
   };
 

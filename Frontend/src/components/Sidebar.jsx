@@ -93,6 +93,9 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                     className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
                       "/production/overview"
                     )}`}
+                    onClick={() => {
+                      window.scrollTo(0, 0);
+                    }}
                   >
                     Production Report
                   </Link>
@@ -103,28 +106,11 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                     className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
                       "/production/component-traceability-report"
                     )}`}
+                    onClick={() => {
+                      window.scrollTo(0, 0);
+                    }}
                   >
                     Component Traceability Report
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/production/fg-report"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/production/fg-report"
-                    )}`}
-                  >
-                    FG Report
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/production/count-report"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/production/count-report"
-                    )}`}
-                  >
-                    Production Count Report
                   </Link>
                 </li>
                 <li>
@@ -175,16 +161,6 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                     )}`}
                   >
                     Stage History Report
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/production/component-details"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/production/component-details"
-                    )}`}
-                  >
-                    Component Details
                   </Link>
                 </li>
                 <li>

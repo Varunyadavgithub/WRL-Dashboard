@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux"; // Import Redux hooks
 
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import NavBar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
-import { loginUser } from "./redux/authSlice"; // Import actions
 
 function App() {
   const [isSidebarExpanded, setSidebarExpanded] = useState(false);
@@ -15,19 +13,6 @@ function App() {
   const toggleSidebar = () => {
     setSidebarExpanded((prev) => !prev);
   };
-
-  // Get authentication state from Redux store
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
-
-  // Simulate checking authentication from a session or token
-  useEffect(() => {
-    // You could check token expiration here if needed
-    if (user) {
-      // User is authenticated if there's user info
-      dispatch(loginUser(user)); // Optionally dispatch login if needed
-    }
-  }, [dispatch, user]);
 
   return (
     <Routes>
@@ -39,7 +24,7 @@ function App() {
       <Route
         path="/*"
         element={
-          isAuthenticated ? (
+          true ? (
             <div className="flex flex-col h-screen">
               <NavBar />
               <div className="flex flex-1 overflow-hidden">
@@ -48,7 +33,7 @@ function App() {
                   toggleSidebar={toggleSidebar}
                 />
                 <div
-                  className={`flex-1 transition-all duration-300 ease-in-out min-h-screen overflow-auto ${
+                  className={`flex-1 transition-all duration-300 ease-in-out overflow-auto ${
                     isSidebarExpanded ? "ml-64" : "ml-16"
                   }`}
                 >

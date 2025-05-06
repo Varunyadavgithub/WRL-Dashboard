@@ -5,14 +5,11 @@ import Home from "../pages/Home";
 
 import ProductionOverview from "../pages/Production/Overview";
 import ComponentTraceabilityReport from "../pages/Production/ComponentTraceabilityReport";
-import FgReport from "../pages/Production/FgReport";
-import CountReport from "../pages/Production/CountReport";
 import HourlyReport from "../pages/Production/HourlyReport";
 import LineHourlyReport from "../pages/Production/LineHourlyReport";
 import ConsolidatedReport from "../pages/Production/ConsolidatedReport";
 import StopLossReport from "../pages/Production/StopLossReport";
 import StageHistoryReport from "../pages/Production/StageHistoryReport";
-import ComponentDetails from "../pages/Production/ComponentDetails";
 import ModelNameUpdate from "../pages/Production/ModelNameUpdate";
 import TotalProduction from "../pages/Production/TotalProduction";
 
@@ -49,8 +46,6 @@ function MainContent() {
           path="/production/component-traceability-report"
           element={<ComponentTraceabilityReport />}
         />
-        <Route path="/production/fg-report" element={<FgReport />} />
-        <Route path="/production/count-report" element={<CountReport />} />
         <Route path="/production/hourly-report" element={<HourlyReport />} />
         <Route
           path="/production/line-hourly-report"
@@ -68,10 +63,7 @@ function MainContent() {
           path="/production/stage-history-report"
           element={<StageHistoryReport />}
         />
-        <Route
-          path="/production/component-details"
-          element={<ComponentDetails />}
-        />
+
         <Route
           path="/production/model-name-update"
           element={<ModelNameUpdate />}

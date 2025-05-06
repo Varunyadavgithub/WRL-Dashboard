@@ -21,8 +21,6 @@ const HourlyReport = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [freezerLine, setFreezerLine] = useState(false);
-  const [chocolateLine, setChocolateLine] = useState(false);
 
   const hourData = [
     { hour: 1, count: 72 },
@@ -75,95 +73,115 @@ const HourlyReport = () => {
       />
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <SelectField
-          label="Model"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          options={modelOptions}
-        />
-        <SelectField
-          label="Stage"
-          value={stage}
-          onChange={(e) => setStage(e.target.value)}
-          options={stageOptions}
-        />
-        <InputField
-          label="Start Time"
-          type="datetime-local"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-        />
-        <InputField
-          label="End Time"
-          type="datetime-local"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-        />
+      <div className="flex gap-4">
+        <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-4xl">
+          <SelectField
+            label="Model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            options={modelOptions}
+          />
+          <SelectField
+            label="Stage Name"
+            value={stage}
+            onChange={(e) => setStage(e.target.value)}
+            options={stageOptions}
+          />
+          <InputField
+            label="Start Time"
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+          <InputField
+            label="End Time"
+            type="datetime-local"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+        <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md mt-6">
+          {/* Buttons and Checkboxes */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={() => setAutoRefresh(!autoRefresh)}
+                />
+                Auto Refresh
+              </label>
+              <div className="flex flex-col gap-1">
+                <label>
+                  <input type="radio" name="lineType" /> Freezer Line
+                </label>
+                <label>
+                  <input type="radio" name="lineType" /> Chocolate Line
+                </label>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button onClick={() => console.log("Refresh Clicked")}>
+                REFRESH
+              </Button>
+              <Button
+                bgColor="bg-green-600"
+                onClick={() => console.log("Export Clicked")}
+              >
+                EXPORT
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Buttons and Checkboxes */}
-      <div className="flex flex-wrap items-center gap-4 mt-6">
-        <Button onClick={() => console.log("Refresh Clicked")}>
-          REFRESH
-        </Button>
-        <Button
-          bgColor="bg-green-600"
-          onClick={() => console.log("Export Clicked")}
-        >
-          EXPORT
-        </Button>
+      <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
+        <div className="flex items-center gap-4">
+          {/* Table 1 */}
+          <div className="overflow-x-auto w-1/2">
+            <table className="min-w-full border text-left bg-white rounded-lg">
+              <thead className="text-center">
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 border">Hour Number</th>
+                  <th className="px-4 py-2 border">Time Hour</th>
+                  <th className="px-4 py-2 border">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2 border">N/A</td>
+                    <td className="px-4 py-2 border">N/A</td>
+                    <td className="px-4 py-2 border">N/A</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input
-            type="checkbox"
-            checked={autoRefresh}
-            onChange={() => setAutoRefresh(!autoRefresh)}
-          />
-          Auto Refresh
-        </label>
-
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input
-            type="checkbox"
-            checked={freezerLine}
-            onChange={() => setFreezerLine(!freezerLine)}
-          />
-          Freezer Line
-        </label>
-
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input
-            type="checkbox"
-            checked={chocolateLine}
-            onChange={() => setChocolateLine(!chocolateLine)}
-          />
-          Chocolate Line
-        </label>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto mt-6">
-        <table className="min-w-full border text-left bg-white rounded-lg">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-2 border">Hour Number</th>
-              <th className="px-4 py-2 border">Time Hour</th>
-              <th className="px-4 py-2 border">Count</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hourData.map((item, idx) => (
-              <tr key={idx}>
-                <td className="px-4 py-2 border">{item.hour}</td>
-                <td className="px-4 py-2 border">
-                  {`${item.hour}:00 - ${item.hour + 1}:00`}
-                </td>
-                <td className="px-4 py-2 border">{item.count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {/* Table 2 */}
+          <div className="overflow-x-auto w-1/2">
+            <table className="min-w-full border text-left bg-white rounded-lg">
+              <thead className="text-center">
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 border">Time Hour</th>
+                  <th className="px-4 py-2 border">Name</th>
+                  <th className="px-4 py-2 border">Model Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2 border">N/A</td>
+                    <td className="px-4 py-2 border">N/A</td>
+                    <td className="px-4 py-2 border">N/A</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Chart */}
