@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
+import DateTimePicker from "../../components/common/DateTimePicker";
 
 const TotalProduction = () => {
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const variants = [
     { label: "Variant A", value: "variant-a" },
     { label: "Variant B", value: "variant-b" },
@@ -38,7 +41,19 @@ const TotalProduction = () => {
 
         {/* Second Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div>
+          <DateTimePicker
+            label="Start Time"
+            name="startTime"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+          <DateTimePicker
+            label="End Time"
+            name="endTime"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+          {/* <div>
             <label className="block font-semibold mb-1">Start Time</label>
             <input
               type="datetime-local"
@@ -51,7 +66,7 @@ const TotalProduction = () => {
               type="datetime-local"
               className="w-full p-1 border rounded-md"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Third Row */}

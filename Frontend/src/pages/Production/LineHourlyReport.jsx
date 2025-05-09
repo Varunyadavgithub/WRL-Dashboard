@@ -11,6 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import InputField from "../../components/common/InputField";
+import DateTimePicker from "../../components/common/DateTimePicker";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -61,19 +62,17 @@ const LineHourlyReport = () => {
       {/* Filters Section */}
       <div className="flex gap-4">
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-4xl items-center">
-          <InputField
+          <DateTimePicker
             label="Start Time"
-            type="datetime-local"
+            name="startTime"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="mt-0"
           />
-          <InputField
+          <DateTimePicker
             label="End Time"
-            type="datetime-local"
+            name="endTime"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="mt-0"
           />
         </div>
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md mt-6">
