@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Title from "../../components/common/Title";
 import { Bar } from "react-chartjs-2";
 import {
@@ -14,6 +14,7 @@ import SelectField from "../../components/common/SelectField";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
+import ExportButton from "../../components/common/ExportButton";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -24,8 +25,10 @@ const HourlyReport = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
-  const [hourData, setHourData] = useState([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [hourData, setHourData] = useState([]);
+  const [hourlyModelCount, setHourlyModelCount] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
 
   const fetchModel = async () => {
     try {
@@ -64,7 +67,7 @@ const HourlyReport = () => {
       setLoading(true);
 
       const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/hour-wise-production",
+        "http://localhost:3000/api/v1/prod/hourly-summary",
         {
           params: {
             stationCode,
@@ -73,10 +76,35 @@ const HourlyReport = () => {
           },
         }
       );
-
       setHourData(res.data);
     } catch (error) {
       console.error("Error fetching hourly production data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHourlyModelCount = async () => {
+    if (!stationCode || !startTime || !endTime) return;
+    try {
+      setLoading(true);
+      const params = {
+        stationCode,
+        startDate: startTime,
+        endDate: endTime,
+      };
+      if (selectedModel?.value && selectedModel.value !== "0") {
+        params.model = selectedModel.value;
+      }
+
+      const res = await axios.get(
+        "http://localhost:3000/api/v1/prod/hourly-model-count",
+        { params }
+      );
+
+      setHourlyModelCount(res.data.recordset);
+    } catch (error) {
+      console.error("Error fetching hourly model count data:", error);
     } finally {
       setLoading(false);
     }
@@ -161,19 +189,15 @@ const HourlyReport = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
-      <Title
-        title="Hourly Report"
-        subTitle="This report provides a detailed overview of production metrics on an hourly basis, including output rates, efficiency, and quality assessments."
-        align="center"
-      />
+      <Title title="Hourly Report" align="center" />
 
       {/* Filters */}
       <div className="flex gap-4">
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-4xl">
           <SelectField
             label="Model"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
             options={model}
           />
           <SelectField
@@ -220,13 +244,21 @@ const HourlyReport = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Button onClick={() => fetchHourlyProduction()}>REFRESH</Button>
                 <Button
-                  bgColor="bg-green-600"
-                  onClick={() => alert("Export logic not implemented")}
+                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+                  textColor={loading ? "text-white" : "text-black"}
+                  className={`font-semibold ${
+                    loading ? "cursor-not-allowed" : ""
+                  }`}
+                  onClick={async () => {
+                    await fetchHourlyProduction();
+                    await fetchHourlyModelCount();
+                  }}
+                  disabled={loading}
                 >
-                  EXPORT
+                  Query
                 </Button>
+                <ExportButton />
               </div>
             </div>
             {/* Count */}
@@ -248,29 +280,41 @@ const HourlyReport = () => {
             {/* Table 1 */}
             <div className="w-1/2">
               <div className="border rounded-lg overflow-hidden">
-                <div className="max-h-[500px] overflow-y-auto">
-                  <table className="min-w-full border text-left bg-white">
+                <div className="w-full max-h-[600px] overflow-x-auto">
+                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr className="text-center">
-                        <th className="px-4 py-2 border bg-gray-200">
+                      <tr>
+                        <th className="px-1 py-1 border min-w-[120px]">
                           Hour Number
                         </th>
-                        <th className="px-4 py-2 border bg-gray-200">
+                        <th className="px-1 py-1 border min-w-[120px]">
                           Time Hour
                         </th>
-                        <th className="px-4 py-2 border bg-gray-200">Count</th>
+                        <th className="px-1 py-1 border min-w-[120px]">
+                          Count
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {hourData.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">
-                            {item.HOUR_NUMBER}
+                      {hourData && hourData.length > 0 ? (
+                        hourData.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-100">
+                            <td className="px-1 py-1 border">
+                              {item.HOUR_NUMBER}
+                            </td>
+                            <td className="px-1 py-1 border">
+                              {item.TIMEHOUR}
+                            </td>
+                            <td className="px-1 py-1 border">{item.COUNT}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="text-center py-4">
+                            No data found.
                           </td>
-                          <td className="px-4 py-2 border">{item.TIMEHOUR}</td>
-                          <td className="px-4 py-2 border">{item.COUNT}</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -280,27 +324,35 @@ const HourlyReport = () => {
             {/* Table 2 */}
             <div className="w-1/2">
               <div className="border rounded-lg overflow-hidden">
-                <div className="max-h-[500px] overflow-y-auto">
-                  <table className="min-w-full border text-left bg-white">
+                <div className="w-full max-h-[600px] overflow-x-auto">
+                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                       <tr>
-                        <th className="px-4 py-2 border bg-gray-200">
-                          Time Hour
-                        </th>
-                        <th className="px-4 py-2 border bg-gray-200">Name</th>
-                        <th className="px-4 py-2 border bg-gray-200">
-                          Model Count
-                        </th>
+                        <th className="px-1 py-1 border">Time Hour</th>
+                        <th className="px-1 py-1 border">Name</th>
+                        <th className="px-1 py-1 border">Model Count</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {hourData.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">{`Hour ${item.hour}`}</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">{item.count}</td>
+                      {hourlyModelCount.length > 0 ? (
+                        hourlyModelCount.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-100">
+                            <td className="px-1 py-1 border">
+                              {item.TIMEHOUR}
+                            </td>
+                            <td className="px-1 py-1 border">{item.Name}</td>
+                            <td className="px-1 py-1 border">
+                              {item.ModelCount}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="text-center py-4">
+                            No data found.
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>

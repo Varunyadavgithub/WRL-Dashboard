@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react"; // ✅ useEffect imported in same line
+import { useState, useEffect } from "react";
 import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
+import Loader from "../../components/common/Loader";
+import ExportButton from "../../components/common/ExportButton";
 
 const ComponentTraceabilityReport = () => {
   const [loading, setLoading] = useState(false);
@@ -30,20 +32,20 @@ const ComponentTraceabilityReport = () => {
 
   const fetchTraceabilityData = async () => {
     if (!startTime || !endTime) return;
-
     try {
       setLoading(true);
+
       const params = {
         startTime,
         endTime,
         model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
       };
-
       const res = await axios.get(
         "http://localhost:3000/api/v1/prod/component-traceability",
         { params }
       );
-      setTraceabilityData(res.data);
+      console.log(res);
+      setTraceabilityData(res?.data?.result?.recordsets?.[0]);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -57,11 +59,7 @@ const ComponentTraceabilityReport = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
-      <Title
-        title="Component Traceability Report"
-        subTitle="This report provides a detailed traceability of components used in the production process, ensuring quality and compliance."
-        align="center"
-      />
+      <Title title="Component Traceability Report" align="center" />
 
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
@@ -99,21 +97,20 @@ const ComponentTraceabilityReport = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="flex flex-wrap items-end gap-2 mt-4 w-full">
             <Button
-              bgColor="bg-yellow-300"
-              textColor="text-black"
-              className="font-semibold"
-              onClick={fetchTraceabilityData}
+              bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+              textColor={loading ? "text-white" : "text-black"}
+              className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
+              onClick={() => fetchTraceabilityData()}
+              disabled={loading}
             >
               Query
             </Button>
-            <Button
-              bgColor="bg-yellow-300"
-              textColor="text-black"
-              className="font-semibold"
-              onClick={() => console.log("Export clicked")}
-            >
-              Export
-            </Button>
+
+            <ExportButton
+              data={traceabilityData}
+              filename="component_traceability_report"
+            />
+
             {/* Count */}
             <div className="mt-4 text-left font-bold text-lg">
               COUNT:{" "}
@@ -127,43 +124,79 @@ const ComponentTraceabilityReport = () => {
 
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        <div className="bg-white border border-gray-300 rounded-md p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Data Table */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full border text-left bg-white rounded-lg">
-                <thead className="text-center">
-                  <tr className="bg-gray-200">
-                    <th className="px-4 py-2 border">SAP_PO</th>
-                    <th className="px-4 py-2 border">PS_No.</th>
-                    <th className="px-4 py-2 border">Model_Name</th>
-                    <th className="px-4 py-2 border">Reference Barcode</th>
-                    <th className="px-4 py-2 border">Component Serial No.</th>
-                    <th className="px-4 py-2 border">Component Name</th>
-                    <th className="px-4 py-2 border">Component Type</th>
-                    <th className="px-4 py-2 border">Supplier_Name</th>
-                    <th className="px-4 py-2 border">Scanned On</th>
-                    <th className="px-4 py-2 border">Fg Sr. No.</th>
-                    <th className="px-4 py-2 border">Asset tag</th>
-                    <th className="px-4 py-2 border">SAP Item Code</th>
+        <div className="w-full bg-white border border-gray-300 rounded-md p-4">
+          {/* Data Table */}
+          {loading ? (
+            <Loader />
+          ) : (
+            <div className="w-full max-h-[600px] overflow-x-auto">
+              <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                  <tr>
+                    <th className="px-1 py-1 border min-w-[120px]">PS_No.</th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Model_Name
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Reference Barcode
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Component Serial No.
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Component Name
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Component Type
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Supplier_Name
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Scanned On
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Fg Sr. No.
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Asset tag
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      SAP Item Code
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {traceabilityData.length > 0 ? (
                     traceabilityData.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-2 border">{item.SAP_PO || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.PS_No || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.Model_Name || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.ReferenceBarcode || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.ComponentSerialNo || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.ComponentName || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.ComponentType || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.Supplier_Name || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.ScannedOn || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.FgSrNo || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.AssetTag || "N/A"}</td>
-                        <td className="px-4 py-2 border">{item.SAPItemCode || "N/A"}</td>
+                      <tr key={index} className="hover:bg-gray-100">
+                        <td className="px-1 py-1 border">{item.PSNo}</td>
+                        <td className="px-1 py-1 border">{item.Model_Name}</td>
+                        <td className="px-1 py-1 border">
+                          {item.Reference_Barcode}
+                        </td>
+                        <td className="px-1 py-1 border">
+                          {item.Component_Serial_Number}
+                        </td>
+                        <td className="px-1 py-1 border">
+                          {item.Component_Name}
+                        </td>
+                        <td className="px-1 py-1 border">
+                          {item.Component_Type}
+                        </td>
+                        <td className="px-1 py-1 border">
+                          {item.Supplier_Name}
+                        </td>
+                        <td className="px-1 py-1 border">{item.ScannedOn &&
+                                item.ScannedOn.replace("T", " ").replace(
+                                  "Z",
+                                  ""
+                                )}</td>
+                        <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
+                        <td className="px-1 py-1 border">{item.Asset_tag}</td>
+                        <td className="px-1 py-1 border">
+                          {item.SAP_Item_Code}
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -176,7 +209,7 @@ const ComponentTraceabilityReport = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

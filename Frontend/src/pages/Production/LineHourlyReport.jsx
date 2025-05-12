@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
-import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
@@ -10,54 +9,271 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import InputField from "../../components/common/InputField";
 import DateTimePicker from "../../components/common/DateTimePicker";
+import ExportButton from "../../components/common/ExportButton";
+import LineHourlyReportTables from "../../components/LineHourlyReportTables";
+import LineHourlyReportCharts from "../../components/LineHourlyReportCharts";
+import axios from "axios";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const LineHourlyReport = () => {
+  const [loading, setLoading] = useState(false);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lineType, setLineType] = useState("final_line");
 
-  const hourData = [
-    { hour: 1, count: 72 },
-    { hour: 2, count: 85 },
-    { hour: 3, count: 72 },
-    { hour: 4, count: 22 },
-    { hour: 5, count: 82 },
-    { hour: 6, count: 40 },
-    { hour: 7, count: 90 },
-  ];
+  // State for diffrent table data
+  const [finalFreezerData, setFinalFreezerData] = useState([]);
+  const [finalChocData, setFinalChocData] = useState([]);
+  const [finalSUSData, setFinalSUSData] = useState([]);
+  const [postFormingFreezerAData, setPostFormingFreezerAData] = useState([]);
+  const [postFormingFreezerBData, setPostFormingFreezerBData] = useState([]);
+  const [postFormingSUSData, setPostFormingSUSData] = useState([]);
+  const [formingFOMAData, setFormingFOMAData] = useState([]);
+  const [formingFOMBData, setFormingFOMBData] = useState([]);
+  const [formingCategoryData, setFormingCategoryData] = useState([]);
+  const [categoryCountData, setCategoryCountData] = useState([]);
 
-  const chartData = {
-    labels: hourData.map((item) => `Hour ${item.hour}`),
-    datasets: [
-      {
-        label: "Production Count",
-        data: hourData.map((item) => item.count),
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
-        borderRadius: 5,
-      },
-    ],
+  // API Base URL
+  const API_BASE_URL = "http://localhost:3000/api/v1/prod";
+
+  // Fetch data for different line types and tables
+  const fetchHourlyReport = async () => {
+    if (!startTime || !endTime) {
+      alert("Please select both Start Time and End Time");
+      return;
+    }
+    setLoading(true);
+    try {
+      const apiCalls = {
+        final_line: [
+          axios.get(`${API_BASE_URL}/final-hp-frz`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/final-hp-choc`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/final-hp-sus`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/final-hp-cat`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+        ],
+
+        post_forming: [
+          axios.get(`${API_BASE_URL}/post-hp-frz-a`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/post-hp-frz-b`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/post-hp-sus`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/post-hp-cat`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+        ],
+
+        forming: [
+          axios.get(`${API_BASE_URL}/forming-hp-fom-a`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/forming-hp-fom-b`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+
+          axios.get(`${API_BASE_URL}/forming-hp-fom-cat`, {
+            params: {
+              StartTime: startTime,
+              EndTime: endTime,
+            },
+          }),
+        ],
+      };
+
+      const apiResults = await Promise.all(
+        apiCalls[lineType].map(async (call) => {
+          try {
+            const response = await call;
+            return response;
+          } catch (error) {
+            console.error(`API Call Error: ${error.message}`);
+            console.error(`Request URL: ${error.config.url}`);
+            console.error(`Request Params:`, error.config.params);
+            return { data: [] };
+          }
+        })
+      );
+
+      // Reset previous data before setting new data
+      setFinalFreezerData([]);
+      setFinalChocData([]);
+      setFinalSUSData([]);
+      setPostFormingFreezerAData([]);
+      setPostFormingFreezerBData([]);
+      setPostFormingSUSData([]);
+      setFormingFOMAData([]);
+      setFormingFOMBData([]);
+      setFormingCategoryData([]);
+      setCategoryCountData([]);
+
+      switch (lineType) {
+        case "final_line":
+          setFinalFreezerData(apiResults[0].data);
+          setFinalChocData(apiResults[1].data);
+          setFinalSUSData(apiResults[2].data);
+          setCategoryCountData(apiResults[3].data);
+          break;
+
+        case "post_forming":
+          setPostFormingFreezerAData(apiResults[0].data);
+          setPostFormingFreezerBData(apiResults[1].data);
+          setPostFormingSUSData(apiResults[2].data);
+          setCategoryCountData(apiResults[3].data);
+          break;
+
+        case "forming":
+          setFormingFOMAData(apiResults[0].data);
+          setFormingFOMBData([apiResults[1].data]);
+          setFormingCategoryData(apiResults[2].data);
+          break;
+      }
+    } catch (error) {
+      console.error("Error fetching hourly report:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const chartOptions = {
-    responsive: true,
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-      },
+  const tableConfigurations = {
+    final_line: {
+      tables: [
+        {
+          title: "Final Freezer",
+          data: finalFreezerData,
+        },
+
+        {
+          title: "Final Choc",
+          data: finalChocData,
+        },
+
+        {
+          title: "Final SUS",
+          data: finalSUSData,
+        },
+
+        {
+          title: "Category Count",
+          data: categoryCountData,
+        },
+      ],
+    },
+
+    post_forming: {
+      tables: [
+        {
+          title: "Freezer A",
+          data: postFormingFreezerAData,
+        },
+        {
+          title: "Freezer B",
+          data: postFormingFreezerBData,
+        },
+
+        {
+          title: "SUS",
+          data: postFormingSUSData,
+        },
+
+        {
+          title: "Category Count",
+          data: categoryCountData,
+        },
+      ],
+    },
+
+    forming: {
+      tables: [
+        {
+          title: "Forming A",
+          data: formingFOMAData,
+        },
+        {
+          title: "Forming B",
+          data: formingFOMBData,
+        },
+        {
+          title: "Category Count",
+          data: formingCategoryData,
+        },
+      ],
     },
   };
+
+  // Auto Refresh Logic (Optional)
+
+  useEffect(() => {
+    let intervalId;
+    if (autoRefresh && startTime && endTime) {
+      // Set up an interval to refresh data periodically
+      intervalId = setInterval(() => {
+        fetchHourlyReport();
+      }, 30000); // Refresh every 30 seconds
+    }
+
+    // Cleanup interval on component unmount or when conditions change
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoRefresh, startTime, endTime, lineType]);
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
-      <Title
-        title="Line Hourly Report"
-        subTitle="This report provides a detailed analysis of the production line's hourly performance, including output rates, efficiency metrics, and any deviations from expected performance."
-        align="center"
-      />
+      <Title title="Line Hourly Report" align="center" />
 
       {/* Filters Section */}
       <div className="flex gap-4">
@@ -89,27 +305,51 @@ const LineHourlyReport = () => {
               </label>
               <div className="flex flex-col gap-1">
                 <label>
-                  <input type="radio" name="lineType" /> Final Line
+                  <input
+                    type="radio"
+                    name="lineType"
+                    value="final_line"
+                    checked={lineType === "final_line"}
+                    onChange={(e) => setLineType(e.target.value)}
+                  />
+                  Final Line
                 </label>
                 <label>
-                  <input type="radio" name="lineType" /> Post Forming
+                  <input
+                    type="radio"
+                    name="lineType"
+                    value="post_forming"
+                    checked={lineType === "post_forming"}
+                    onChange={(e) => setLineType(e.target.value)}
+                  />
+                  Post Forming
                 </label>
                 <label>
-                  <input type="radio" name="lineType" /> Forming
+                  <input
+                    type="radio"
+                    name="lineType"
+                    value="forming"
+                    checked={lineType === "forming"}
+                    onChange={(e) => setLineType(e.target.value)}
+                  />
+                  Forming
                 </label>
               </div>
             </div>
             <div className="flex flex-col items-center gap-4">
               <div className="flex gap-2">
-                <Button onClick={() => console.log("Refresh Clicked")}>
-                  REFRESH
-                </Button>
                 <Button
-                  bgColor="bg-green-600"
-                  onClick={() => console.log("Export Clicked")}
+                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+                  textColor={loading ? "text-white" : "text-black"}
+                  className={`font-semibold ${
+                    loading ? "cursor-not-allowed" : ""
+                  }`}
+                  onClick={fetchHourlyReport}
+                  disabled={loading}
                 >
-                  EXPORT
+                  Query
                 </Button>
+                <ExportButton />
               </div>
               <div className="text-left font-bold text-lg">
                 COUNT: <span className="text-blue-700">000</span>
@@ -120,147 +360,20 @@ const LineHourlyReport = () => {
       </div>
 
       {/* Summary Section */}
+
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="flex flex-col bg-white border border-gray-300 rounded-md p-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Final Freezer */}
-            <div className="bg-white p-4 rounded shadow flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Final Freezer</h3>
-                <div className="font-semibold text-lg">
-                  Count: <span className="text-blue-700">000</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-center">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border text-left bg-white rounded-lg">
-                    <thead className="text-center">
-                      <tr className="bg-gray-200">
-                        <th className="px-4 py-2 border">Hour No.</th>
-                        <th className="px-4 py-2 border">Time Hour</th>
-                        <th className="px-4 py-2 border">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4, 5].map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            {/* Final Choc */}
-            <div className="bg-white p-4 rounded shadow flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Final Choc</h3>
-                <div className="font-semibold text-lg">
-                  Count: <span className="text-blue-700">000</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-center">
-                <div className="overflow-x-auto mt-6">
-                  <table className="min-w-full border text-left bg-white rounded-lg">
-                    <thead className="text-center">
-                      <tr className="bg-gray-200">
-                        <th className="px-4 py-2 border">Hour No.</th>
-                        <th className="px-4 py-2 border">Time Hour</th>
-                        <th className="px-4 py-2 border">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4, 5].map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            {/* Final SUS */}
-            <div className="bg-white p-4 rounded shadow flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Final SUS</h3>
-                <div className="font-semibold text-lg">
-                  Count: <span className="text-blue-700">000</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-center">
-                <div className="overflow-x-auto mt-6">
-                  <table className="min-w-full border text-left bg-white rounded-lg">
-                    <thead className="text-center">
-                      <tr className="bg-gray-200">
-                        <th className="px-4 py-2 border">Hour No.</th>
-                        <th className="px-4 py-2 border">Time Hour</th>
-                        <th className="px-4 py-2 border">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4, 5].map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            {/* Category Count */}
-            <div className="bg-white p-4 rounded shadow flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Category Count</h3>
-                <div className="font-semibold text-lg">
-                  Count: <span className="text-blue-700">000</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-center">
-                <div className="overflow-x-auto mt-6">
-                  <table className="min-w-full border text-left bg-white rounded-lg">
-                    <thead className="text-center">
-                      <tr className="bg-gray-200">
-                        <th className="px-4 py-2 border">Category</th>
-                        <th className="px-4 py-2 border">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4, 5].map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 border">N/A</td>
-                          <td className="px-4 py-2 border">N/A</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Chart */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded shadow mt-4">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
-            <div className="bg-white p-4 rounded shadow mt-4">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
-            <div className="bg-white p-4 rounded shadow mt-4">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
-            <div className="bg-white p-4 rounded shadow mt-4">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
-          </div>
+          {/* Tables Component */}
+          <LineHourlyReportTables
+            tableConfigurations={tableConfigurations}
+            lineType={lineType}
+          />
+
+          {/* Charts Component */}
+          <LineHourlyReportCharts
+            tableConfigurations={tableConfigurations}
+            lineType={lineType}
+          />
         </div>
       </div>
     </div>

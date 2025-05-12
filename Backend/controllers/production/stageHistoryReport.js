@@ -17,28 +17,31 @@ WITH Psno AS (
     WHERE Serial = @serialNumber OR Alias = @serialNumber
 )
 SELECT 
-    PSNO,
+    Psno.DocNo AS PSNO,
+    M.Name AS MaterialName,
     B.StationCode,
-    B.Name,
-    B.Alias,
+    B.Name AS StationName,
+    B.Alias AS StationAlias,
     A.ActivityOn,
-    PSNO.Serial2,
-    PSNO.VSerial,
-    PSNO.Alias,
-    PSNO.Serial,
+    Psno.Serial2,
+    Psno.VSerial,
+    Psno.Alias AS BarcodeAlias,
+    Psno.Serial,
     A.ActivityType,
-    C.Type
+    C.Type AS ActivityTypeName
 FROM 
-    ProcessActivity A
+    Psno
+INNER JOIN 
+    ProcessActivity A ON Psno.DocNo = A.PSNO
 INNER JOIN 
     WorkCenter B ON A.StationCode = B.StationCode
+INNER JOIN 
+    Material M ON Psno.Material = M.MatCode
 LEFT JOIN 
-    ProcessActivityType C ON C.id = A.ActivityType,
-    Psno
-WHERE 
-    PSNO = Psno.DocNo
+    ProcessActivityType C ON C.id = A.ActivityType
 ORDER BY 
-    ActivityOn DESC;
+    A.ActivityOn DESC;
+
     `;
 
   try {

@@ -1,5 +1,5 @@
 import express from "express";
-import { generateReport } from "../../controllers/production/componentTraceability.js";
+import { generateReport } from "../../controllers/production/componentTraceabilityReport.js";
 
 const route = express.Router();
 

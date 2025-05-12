@@ -1,16 +1,46 @@
-import React from "react";
 import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
+import { useState } from "react";
+import axios from "axios";
+import Loader from "../../components/common/Loader";
+import ExportButton from "../../components/common/ExportButton";
 
 function StageHistoryReport() {
+  const [loading, setLoading] = useState(false);
+  const [serialNumber, setSerialNumber] = useState("");
+  const [stageHistoryData, setStageHistoryData] = useState([]);
+  const [productName, setProductName] = useState("");
+
+  const fetchStageHistoryData = async () => {
+    if (!serialNumber) return;
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        "http://localhost:3000/api/v1/prod/stage-history",
+        {
+          params: { serialNumber },
+        }
+      );
+      const data = res.data?.result?.recordsets[0] || [];
+      console.log(data);
+      setStageHistoryData(data);
+
+      if (data.length > 0 && data[0].MaterialName) {
+        setProductName(data[0].MaterialName);
+      } else {
+        setProductName("");
+      }
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
-      <Title
-        title="Stage History Report"
-        subTitle="This report shows the history of each stage in the production process."
-        align="center"
-      />
+      <Title title="Stage History Report" align="center" />
 
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
@@ -21,28 +51,28 @@ function StageHistoryReport() {
             type="text"
             placeholder="Enter details"
             className="w-64"
+            name="serialNumber"
+            value={serialNumber}
+            onChange={(e) => setSerialNumber(e.target.value)}
           />
           <div className="flex items-center justify-center gap-4">
             <Button
-              bgColor="bg-yellow-300"
-              textColor="text-black"
-              className="font-semibold"
-              onClick={() => console.log("Query clicked")}
+              bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+              textColor={loading ? "text-white" : "text-black"}
+              className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
+              onClick={() => fetchStageHistoryData()}
+              disabled={loading}
             >
               Query
             </Button>
-            <Button
-              bgColor="bg-yellow-300"
-              textColor="text-black"
-              className="font-semibold"
-              onClick={() => console.log("Export clicked")}
-            >
-              Export
-            </Button>
+            <ExportButton
+              data={stageHistoryData}
+              filename="stage_history_report"
+            />
           </div>
           {/* Product Name */}
           <div className="mt-4 text-left font-bold text-lg">
-            Product Name: <span className="text-blue-700">EG3R354676R</span>
+            Product Name: <span className="text-blue-700">{productName}</span>
           </div>
         </div>
       </div>
@@ -52,40 +82,70 @@ function StageHistoryReport() {
         <div className="bg-white border border-gray-300 rounded-md p-4">
           <div className="flex flex-wrap items-center gap-4">
             {/* Table 1 */}
-            <div className="overflow-x-auto w-full">
-              <table className="min-w-full border text-left bg-white rounded-lg">
-                <thead className="text-center">
-                  <tr className="bg-gray-200">
-                    <th className="px-4 py-2 border">PSNO</th>
-                    <th className="px-4 py-2 border">Station_Code</th>
-                    <th className="px-4 py-2 border">Name</th>
-                    <th className="px-4 py-2 border">Alias</th>
-                    <th className="px-4 py-2 border">Activity On</th>
-                    <th className="px-4 py-2 border">V Serial</th>
-                    <th className="px-4 py-2 border">Alias 1</th>
-                    <th className="px-4 py-2 border">Serial</th>
-                    <th className="px-4 py-2 border">Activity Type</th>
-                    <th className="px-4 py-2 border">Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[1, 2, 3, 4, 5].map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
-                      <td className="px-4 py-2 border">N/A</td>
+            {loading ? (
+              <Loader />
+            ) : (
+              <div className="w-full max-h-[600px] overflow-x-auto">
+                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+                  <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                    <tr>
+                      <th className="px-1 py-1 border min-w-[120px]">PSNO</th>
+                      <th className="px-1 py-1 border min-w-[120px]">
+                        Station_Code
+                      </th>
+                      <th className="px-1 py-1 border min-w-[120px]">Name</th>
+                      <th className="px-1 py-1 border min-w-[120px]">Alias</th>
+                      <th className="px-1 py-1 border min-w-[120px]">
+                        Activity On
+                      </th>
+                      <th className="px-1 py-1 border min-w-[120px]">
+                        V Serial
+                      </th>
+                      {/* <th className="px-1 py-1 border min-w-[120px]">Alias 1</th> */}
+                      <th className="px-1 py-1 border min-w-[120px]">Serial</th>
+                      <th className="px-1 py-1 border min-w-[120px]">
+                        Activity Type
+                      </th>
+                      {/* <th className="px-1 py-1 border min-w-[120px]">Type</th> */}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {stageHistoryData.length > 0 ? (
+                      stageHistoryData.map((item, index) => (
+                        <tr key={index} className="hover:bg-gray-100">
+                          <td className="px-1 py-1 border">{item.PSNO}</td>
+                          <td className="px-1 py-1 border">
+                            {item.StationCode}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.StationName}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.StationAlias}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.ActivityOn}
+                          </td>
+                          <td className="px-1 py-1 border">{item.VSerial}</td>
+                          {/* <td className="px-1 py-1 border">{item.Alias 1}</td> */}
+                          <td className="px-1 py-1 border">{item.Serial}</td>
+                          <td className="px-1 py-1 border">
+                            {item.ActivityType}
+                          </td>
+                          {/* <td className="px-1 py-1 border">N/A</td> */}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={12} className="text-center py-4">
+                          No data found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -24,15 +24,15 @@ SELECT
     '' AS SAP_PO,
     a.PSNo,
     MATBM.Name AS Model_Name,
-    MATBM.Alias AS [Reference Barcode],
-    b.Serial AS [Component Serial Number],
-    mat.Name AS [Component Name],
-    MatCat.Name AS [Component Type],
+    MATBM.Alias AS [Reference_Barcode],
+    b.Serial AS [Component_Serial_Number],
+    mat.Name AS [Component_Name],
+    MatCat.Name AS [Component_Type],
     (SELECT Name FROM Ledger WHERE LedgerCode = mat.Ledger) AS Supplier_Name,
     b.ScannedOn,
-    MATB.Serial AS [Fg Sr.No],
-    MATB.VSerial AS [Asset tag],
-    mat.AltName AS [SAP Item Code]
+    MATB.Serial AS [Fg_Sr_No],
+    MATB.VSerial AS [Asset_tag],
+    mat.AltName AS [SAP_Item_Code]
 FROM 
     ProcessOrder a
 INNER JOIN 
@@ -73,13 +73,25 @@ WHERE
     const result = await request.query(query);
     res.status(200).json({
       success: true,
-      result,
+      result: result,
     });
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Export Production Report to CSV
