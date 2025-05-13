@@ -37,6 +37,11 @@ app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
 // Connect to DB
 connectDB();
 
+// <------------------------------------------------------------- Test API Route ------------------------------------------------------------->
+app.get("/", (_, res) => {
+  res.status(200).json({ message: "Backend is working correctly!" });
+});
+
 // <------------------------------------------------------------- APIs ------------------------------------------------------------->
 // Shared API
 app.use("/api/v1/shared", sharedRoutes); //✅
