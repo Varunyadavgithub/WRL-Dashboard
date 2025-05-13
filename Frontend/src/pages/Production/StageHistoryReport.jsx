@@ -6,6 +6,8 @@ import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 function StageHistoryReport() {
   const [loading, setLoading] = useState(false);
   const [serialNumber, setSerialNumber] = useState("");
@@ -16,12 +18,9 @@ function StageHistoryReport() {
     if (!serialNumber) return;
     try {
       setLoading(true);
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/stage-history",
-        {
-          params: { serialNumber },
-        }
-      );
+      const res = await axios.get(`${baseURL}prod/stage-history`, {
+        params: { serialNumber },
+      });
       const data = res.data?.result?.recordsets[0] || [];
       console.log(data);
       setStageHistoryData(data);
@@ -124,7 +123,11 @@ function StageHistoryReport() {
                             {item.StationAlias}
                           </td>
                           <td className="px-1 py-1 border">
-                            {item.ActivityOn}
+                            {item.ActivityOn &&
+                              item.ActivityOn.replace("T", " ").replace(
+                                "Z",
+                                ""
+                              )}
                           </td>
                           <td className="px-1 py-1 border">{item.VSerial}</td>
                           {/* <td className="px-1 py-1 border">{item.Alias 1}</td> */}

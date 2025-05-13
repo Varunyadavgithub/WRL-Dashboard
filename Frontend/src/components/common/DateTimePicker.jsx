@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 // Format a JS Date object to "YYYY-MM-DD HH:MM:SS" in local time
 const formatDateTimeLocal = (date) => {

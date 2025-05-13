@@ -15,6 +15,8 @@ import LineHourlyReportTables from "../../components/LineHourlyReportTables";
 import LineHourlyReportCharts from "../../components/LineHourlyReportCharts";
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const LineHourlyReport = () => {
@@ -37,7 +39,7 @@ const LineHourlyReport = () => {
   const [categoryCountData, setCategoryCountData] = useState([]);
 
   // API Base URL
-  const API_BASE_URL = "http://localhost:3000/api/v1/prod";
+  const API_BASE_URL = `${baseURL}prod`;
 
   // Fetch data for different line types and tables
   const fetchHourlyReport = async () => {

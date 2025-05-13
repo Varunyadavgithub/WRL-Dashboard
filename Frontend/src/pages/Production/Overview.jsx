@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
@@ -7,6 +7,8 @@ import axios from "axios";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const Overview = () => {
   const [loading, setLoading] = useState(false);
@@ -20,9 +22,7 @@ const Overview = () => {
 
   const fetchModelVariants = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/model-variants"
-      );
+      const res = await axios.get(`${baseURL}shared/model-variants`);
       const formatted = res?.data.map((item) => ({
         label: item.MaterialName,
         value: item.MatCode.toString(),
@@ -35,9 +35,7 @@ const Overview = () => {
 
   const fetchStages = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/stage-names"
-      );
+      const res = await axios.get(`${baseURL}shared/stage-names`);
       const formatted = res?.data.map((item) => ({
         label: item.Name,
         value: item.StationCode.toString(),
@@ -67,10 +65,7 @@ const Overview = () => {
 
         console.log("Params being sent:", params);
 
-        const res = await axios.get(
-          "http://localhost:3000/api/v1/prod/fgdata",
-          { params }
-        );
+        const res = await axios.get(`${baseURL}prod/fgdata`, { params });
         console.log("Response from server:", res.data);
         setProductionData(res.data);
       } catch (error) {

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
+import path from "path";
 import { connectDB } from "./config/db.js";
 
 // <------------------------------------------------------------- All API Routes ------------------------------------------------------------->
@@ -17,6 +18,8 @@ import lineHourlyReportRoutes from "./routes/production/lineHourlyReport.js";
 import stageHistoryReportRoutes from "./routes/production/stageHistoryReport.js";
 // import modelNameUpdateRoutes from "./routes/modelNameUpdate.js";
 import totalProductionRoutes from "./routes/production/totalProduction.js";
+// Planing Routes
+import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
 
 const app = express();
 app.use(
@@ -26,6 +29,10 @@ app.use(
   })
 );
 app.use(express.json());
+app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
+
+// Serve the shared folder using your LAN IP
+// app.use("/uploads", express.static("E:\\FiveDaysProductionPlan"));
 
 // Connect to DB
 connectDB();
@@ -46,6 +53,9 @@ app.use("/api/v1/prod", stageHistoryReportRoutes); //✅
 app.use("/api/v1/prod", totalProductionRoutes); //✅
 
 // Quality API
+
+// Planing API
+app.use("/api/v1/planing", fiveDaysPlaningRoutes);
 
 // <------------------------------------------------------------- Start server ------------------------------------------------------------->
 const PORT = process.env.PORT;

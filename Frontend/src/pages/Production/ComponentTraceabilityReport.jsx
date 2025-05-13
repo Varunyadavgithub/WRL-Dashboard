@@ -7,6 +7,8 @@ import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const ComponentTraceabilityReport = () => {
   const [loading, setLoading] = useState(false);
   const [variants, setVariants] = useState([]);
@@ -17,9 +19,7 @@ const ComponentTraceabilityReport = () => {
 
   const fetchModelVariants = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/model-variants"
-      );
+      const res = await axios.get(`${baseURL}shared/model-variants`);
       const formatted = res?.data.map((item) => ({
         label: item.MaterialName,
         value: item.MatCode.toString(),
@@ -40,10 +40,9 @@ const ComponentTraceabilityReport = () => {
         endTime,
         model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
       };
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/component-traceability",
-        { params }
-      );
+      const res = await axios.get(`${baseURL}prod/component-traceability`, {
+        params,
+      });
       console.log(res);
       setTraceabilityData(res?.data?.result?.recordsets?.[0]);
     } catch (error) {
@@ -187,11 +186,10 @@ const ComponentTraceabilityReport = () => {
                         <td className="px-1 py-1 border">
                           {item.Supplier_Name}
                         </td>
-                        <td className="px-1 py-1 border">{item.ScannedOn &&
-                                item.ScannedOn.replace("T", " ").replace(
-                                  "Z",
-                                  ""
-                                )}</td>
+                        <td className="px-1 py-1 border">
+                          {item.ScannedOn &&
+                            item.ScannedOn.replace("T", " ").replace("Z", "")}
+                        </td>
                         <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
                         <td className="px-1 py-1 border">{item.Asset_tag}</td>
                         <td className="px-1 py-1 border">

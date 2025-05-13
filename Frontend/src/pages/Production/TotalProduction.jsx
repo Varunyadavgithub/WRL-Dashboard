@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
@@ -6,6 +6,8 @@ import DateTimePicker from "../../components/common/DateTimePicker";
 import { useEffect } from "react";
 import axios from "axios";
 import ExportButton from "../../components/common/ExportButton";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const TotalProduction = () => {
   const [loading, setLoading] = useState(false);
@@ -17,9 +19,7 @@ const TotalProduction = () => {
 
   const fetchModelVariants = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/model-variants"
-      );
+      const res = await axios.get(`${baseURL}shared/model-variants`);
       const formatted = res?.data.map((item) => ({
         label: item.MaterialName,
         value: item.MatCode.toString(),
@@ -51,10 +51,7 @@ const TotalProduction = () => {
         params.model = 0;
       }
 
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/barcode-details",
-        { params }
-      );
+      const res = await axios.get(`${baseURL}prod/barcode-details`, { params });
       setTotalProductionData(res);
     } catch (error) {
       console.error("Failed to fetch production data:", error);

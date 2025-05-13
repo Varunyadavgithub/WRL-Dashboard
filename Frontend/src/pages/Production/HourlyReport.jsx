@@ -16,6 +16,8 @@ import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const HourlyReport = () => {
@@ -32,9 +34,7 @@ const HourlyReport = () => {
 
   const fetchModel = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/model-variants"
-      );
+      const res = await axios.get(`${baseURL}shared/model-variants`);
       const formatted = res?.data.map((item) => ({
         label: item.MaterialName,
         value: item.MatCode.toString(),
@@ -47,9 +47,7 @@ const HourlyReport = () => {
 
   const fetchStages = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/shared/stage-names"
-      );
+      const res = await axios.get(`${baseURL}shared/stage-names`);
       const formatted = res?.data.map((item) => ({
         label: item.Name,
         value: item.StationCode,
@@ -66,16 +64,13 @@ const HourlyReport = () => {
     try {
       setLoading(true);
 
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/hourly-summary",
-        {
-          params: {
-            stationCode,
-            startDate: startTime,
-            endDate: endTime,
-          },
-        }
-      );
+      const res = await axios.get(`${baseURL}prod/hourly-summary`, {
+        params: {
+          stationCode,
+          startDate: startTime,
+          endDate: endTime,
+        },
+      });
       setHourData(res.data);
     } catch (error) {
       console.error("Error fetching hourly production data:", error);
@@ -97,10 +92,9 @@ const HourlyReport = () => {
         params.model = selectedModel.value;
       }
 
-      const res = await axios.get(
-        "http://localhost:3000/api/v1/prod/hourly-model-count",
-        { params }
-      );
+      const res = await axios.get(`${baseURL}prod/hourly-model-count`, {
+        params,
+      });
 
       setHourlyModelCount(res.data.recordset);
     } catch (error) {

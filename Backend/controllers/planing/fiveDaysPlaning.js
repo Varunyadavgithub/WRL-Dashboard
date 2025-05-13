@@ -1,0 +1,33 @@
+import path from "path";
+import fs from "fs";
+
+const uploadDir = path.resolve("uploads");
+
+// Upload file controller
+export const uploadFile = (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
+
+  return res.status(200).json({
+    success: true,
+    filename: req.file.originalname,
+    fileUrl: `/uploads/${req.file.filename}`,
+  });
+};
+
+// Get files list controller
+export const getFiles = (req, res) => {
+  try {
+    const files = fs.readdirSync(uploadDir);
+    const fileList = files.map((file, index) => ({
+      id: index + 1,
+      filename: file.split("-").slice(1).join("-"), // original name only
+      url: `/uploads/${file}`,
+    }));
+    res.status(200).json({ success: true, files: fileList });
+  } catch (error) {
+    console.error("Error reading files:", error.message);
+    res.status(500).json({ success: false, message: "Error reading files" });
+  }
+};
