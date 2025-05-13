@@ -9,6 +9,7 @@ import {
   FaChevronUp,
   FaBars,
   FaTimes,
+  FaClipboardList,
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
@@ -17,6 +18,7 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
     quality: false,
     dispatch: false,
     settings: false,
+    planing: false,
   });
 
   const location = useLocation();
@@ -29,6 +31,7 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
         quality: false,
         dispatch: false,
         settings: false,
+        planing: false,
         [menu]: !isCurrentlyExpanded,
       };
     });
@@ -226,26 +229,6 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                 </li>
                 <li>
                   <Link
-                    to="/quality/process-history-card"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/quality/process-history-card"
-                    )}`}
-                  >
-                    Process History Card
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/quality/scrap-report"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/quality/scrap-report"
-                    )}`}
-                  >
-                    Scrap Report
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     to="/quality/gas-charging-report"
                     className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
                       "/quality/gas-charging-report"
@@ -337,12 +320,12 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
               <ul className="ml-6 mt-2 space-y-2">
                 <li>
                   <Link
-                    to="/dispatch/session-report"
+                    to="/dispatch/dispatch-performance-report"
                     className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/dispatch/session-report"
+                      "/dispatch/dispatch-performance-report"
                     )}`}
                   >
-                    Session Report
+                    Dispatch Performance Report
                   </Link>
                 </li>
                 <li>
@@ -434,6 +417,47 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                     )}`}
                   >
                     Security
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Planing */}
+          <li>
+            <div
+              className="flex items-center justify-between cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition"
+              onClick={() => toggleMenu("planing")}
+            >
+              <div className="flex items-center">
+                <FaClipboardList className="mr-3" />
+                {isSidebarExpanded && (
+                  <span className="font-semibold">Planing</span>
+                )}
+              </div>
+              {isSidebarExpanded &&
+                (expandedMenus.planing ? <FaChevronUp /> : <FaChevronDown />)}
+            </div>
+            {isSidebarExpanded && expandedMenus.planing && (
+              <ul className="ml-6 mt-2 space-y-2">
+                <li>
+                  <Link
+                    to="/planing/production-planing"
+                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
+                      "/planing/production-planing"
+                    )}`}
+                  >
+                    Production Planing
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/planing/5-days-planing"
+                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
+                      "/planing/5-days-planing"
+                    )}`}
+                  >
+                    5 Days Planing
                   </Link>
                 </li>
               </ul>
