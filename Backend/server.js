@@ -69,10 +69,11 @@ app.use("/api/v1/quality", fpaRoutes);
 // Planing API
 app.use("/api/v1/planing", fiveDaysPlaningRoutes);
 
-app.use(express.static(path.join(_dirname, "/Frontend/dist")));
-// app.get("/*", (_, res) => {
-//   res.sendFile(path.resolve(_dirname, "Frontend", "dist", "index.html"));
-// });
+app.use(express.static(path.join(_dirname, "Frontend","dist")));
+// Wildcard route to serve index.html ONLY if path does not start with /api
+app.get(/^\/(?!api\/).*/, (_, res) => {
+  res.sendFile(path.join(_dirname, 'Frontend', 'dist', 'index.html'));
+});
 
 // <------------------------------------------------------------- Start server ------------------------------------------------------------->
 const PORT = process.env.PORT;
