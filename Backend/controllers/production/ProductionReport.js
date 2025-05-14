@@ -3,8 +3,6 @@ import sql, { dbConfig } from "../../config/db.js";
 export const fetchFGData = async (req, res) => {
   const { startTime, endTime, model, stationCode } = req.query;
 
-  // console.log(startTime, endTime, model, stationCode);
-
   if (!startTime || !endTime || !stationCode) {
     return res.status(400).json({
       success: false,
@@ -13,6 +11,12 @@ export const fetchFGData = async (req, res) => {
   }
 
   let query = `
+DECLARE @AdjustedStartTime DATETIME, @AdjustedEndTime DATETIME;
+
+-- Adjusting both times to IST (UTC +5:30)
+SET @AdjustedStartTime = DATEADD(MINUTE, 330, @startTime);
+SET @AdjustedEndTime = DATEADD(MINUTE, 330, @endTime);
+
 WITH Psno AS (
     SELECT DocNo, Material, Serial, VSerial, Serial2, Alias 
     FROM MaterialBarcode 
@@ -26,8 +30,8 @@ FilteredData AS (
     JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
     JOIN WorkCenter c ON b.StationCode = c.StationCode
     WHERE b.ActivityType = 5
-      AND b.ActivityOn >= @startTime 
-      AND b.ActivityOn <= @endTime
+      AND b.ActivityOn >= @AdjustedStartTime
+      AND b.ActivityOn <= @AdjustedEndTime
       AND c.StationCode = @stationCode
 ),
 ModelStats AS (
@@ -60,13 +64,11 @@ JOIN WorkCenter c ON b.StationCode = c.StationCode
 JOIN Users us ON us.UserCode = b.Operator
 JOIN ModelStats ms ON ms.Material = Psno.Material
 WHERE b.ActivityType = 5
-  AND b.ActivityOn >= @startTime 
-  AND b.ActivityOn <= @endTime
+  AND b.ActivityOn >= @AdjustedStartTime
+  AND b.ActivityOn <= @AdjustedEndTime
   AND c.StationCode = @stationCode
+`;
 
-  `;
-
-  // Only add model filter if model is not 0 or null
   if (model && model != 0) {
     query += ` AND Psno.Material = @model`;
   }

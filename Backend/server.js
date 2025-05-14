@@ -5,10 +5,12 @@ dotenv.config();
 import path from "path";
 import { connectDB } from "./config/db.js";
 
+const _dirname = path.resolve();
 // <------------------------------------------------------------- All API Routes ------------------------------------------------------------->
-// Shared Routes
+// <----- Shared Routes ----->
 import sharedRoutes from "./routes/sharedRoutes.js";
-// Production Routes
+
+// <----- Production Routes ----->
 import ProductionReportRoutes from "./routes/production/ProductionReport.js";
 import componentTraceabilityReportRoutes from "./routes/production/componentTraceabilityReport.js";
 import hourlyReportRoutes from "./routes/production/hourlyReport.js";
@@ -18,7 +20,11 @@ import lineHourlyReportRoutes from "./routes/production/lineHourlyReport.js";
 import stageHistoryReportRoutes from "./routes/production/stageHistoryReport.js";
 // import modelNameUpdateRoutes from "./routes/modelNameUpdate.js";
 import totalProductionRoutes from "./routes/production/totalProduction.js";
-// Planing Routes
+
+// <----- Quality Routes ----->
+import fpaRoutes from "./routes/quality/fpa.js";
+
+// <----- Planing Routes ----->
 import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
 
 const app = express();
@@ -38,9 +44,9 @@ app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
 connectDB();
 
 // <------------------------------------------------------------- Test API Route ------------------------------------------------------------->
-app.get("/", (_, res) => {
-  res.status(200).json({ message: "Backend is working correctly!" });
-});
+// app.get("/", (_, res) => {
+//   res.status(200).json({ message: "Backend is working correctly!" });
+// });
 
 // <------------------------------------------------------------- APIs ------------------------------------------------------------->
 // Shared API
@@ -58,9 +64,15 @@ app.use("/api/v1/prod", stageHistoryReportRoutes); //✅
 app.use("/api/v1/prod", totalProductionRoutes); //✅
 
 // Quality API
+app.use("/api/v1/quality", fpaRoutes);
 
 // Planing API
 app.use("/api/v1/planing", fiveDaysPlaningRoutes);
+
+app.use(express.static(path.join(_dirname, "/Frontend/dist")));
+// app.get("/*", (_, res) => {
+//   res.sendFile(path.resolve(_dirname, "Frontend", "dist", "index.html"));
+// });
 
 // <------------------------------------------------------------- Start server ------------------------------------------------------------->
 const PORT = process.env.PORT;

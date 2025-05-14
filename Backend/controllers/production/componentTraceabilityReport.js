@@ -11,7 +11,13 @@ export const generateReport = async (req, res) => {
   }
 
   let query = `
-  WITH Bommaterials AS (
+DECLARE @AdjustedStartTime DATETIME, @AdjustedEndTime DATETIME;
+
+-- Adjust both times to IST (UTC +5:30)
+SET @AdjustedStartTime = DATEADD(MINUTE, 330, @startTime);
+SET @AdjustedEndTime = DATEADD(MINUTE, 330, @endTime);
+
+WITH Bommaterials AS (
     SELECT DISTINCT * FROM (
         SELECT psno, BOMCode, RowID, Material, Qty, ConsumedQty FROM ProcessInputBOM
         UNION ALL
@@ -50,15 +56,16 @@ LEFT JOIN
     Material MATBM ON MATBM.MatCode = MATB.Material
 WHERE 
     MATB.DocNo = a.PSNo 
-    AND ScannedOn BETWEEN @startTime AND @endTime 
+    AND b.ScannedOn BETWEEN @AdjustedStartTime AND @AdjustedEndTime
     AND MATB.VSerial IS NOT NULL
-  `;
+`;
 
   if (model && model != 0) {
     query += ` AND MATBM.MatCode = @model`;
   }
 
   query += " ORDER BY a.PSNo;";
+
   try {
     const pool = await sql.connect(dbConfig);
     const request = pool
@@ -73,25 +80,13 @@ WHERE
     const result = await request.query(query);
     res.status(200).json({
       success: true,
-      result: result,
+      result: result.recordset,
     });
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * Export Production Report to CSV

@@ -44,7 +44,7 @@ const ComponentTraceabilityReport = () => {
         params,
       });
       console.log(res);
-      setTraceabilityData(res?.data?.result?.recordsets?.[0]);
+      setTraceabilityData(res?.data?.result);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {

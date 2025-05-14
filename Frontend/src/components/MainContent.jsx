@@ -18,7 +18,7 @@ import GasChargingReport from "../pages/Quality/GasChargingReport";
 import ESTReport from "../pages/Quality/ESTReport";
 import MFTReport from "../pages/Quality/MFTReport";
 import FPA from "../pages/Quality/FPA";
-import FRAReport from "../pages/Quality/FPAReports";
+import FPAReports from "../pages/Quality/FPAReports";
 import DispatchHold from "../pages/Quality/DispatchHold";
 import HoldCabinateDetails from "../pages/Quality/HoldCabinateDetails";
 
@@ -83,7 +83,7 @@ function MainContent() {
         <Route path="/quality/est-report" element={<ESTReport />} />
         <Route path="/quality/mft-report" element={<MFTReport />} />
         <Route path="/quality/fpa" element={<FPA />} />
-        <Route path="/quality/fra-report" element={<FRAReport />} />
+        <Route path="/quality/fpa-report" element={<FPAReports />} />
         <Route path="/quality/dispatch-hold" element={<DispatchHold />} />
         <Route
           path="/quality/hold-cabinate-details"
