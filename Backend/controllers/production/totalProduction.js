@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getBarcodeDetails = async (req, res) => {
   const { startDate, endDate, model } = req.query;
@@ -68,7 +68,7 @@ WHERE b.ActivityType = 5
   query += ` ORDER BY Psno.Serial;`;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const request = pool.request();
 
     request.input("startDate", sql.DateTime, new Date(startDate));

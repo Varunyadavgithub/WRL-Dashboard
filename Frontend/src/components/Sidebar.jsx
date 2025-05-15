@@ -330,16 +330,6 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
                 </li>
                 <li>
                   <Link
-                    to="/dispatch/fg-unloading-report"
-                    className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                      "/dispatch/fg-unloading-report"
-                    )}`}
-                  >
-                    FG Unloading Report
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     to="/dispatch/dispatch-report"
                     className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
                       "/dispatch/dispatch-report"

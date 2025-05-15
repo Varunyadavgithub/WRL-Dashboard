@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const fetchFGData = async (req, res) => {
   const { startTime, endTime, model, stationCode } = req.query;
@@ -76,7 +76,7 @@ WHERE b.ActivityType = 5
   query += " ORDER BY SrNo;";
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const request = pool
       .request()
       .input("startTime", sql.DateTime, new Date(startTime))

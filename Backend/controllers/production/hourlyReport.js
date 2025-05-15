@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getHourlySummary = async (req, res) => {
   const { stationCode, startDate, endDate } = req.query;
@@ -53,7 +53,7 @@ ORDER BY su.TIMEHOUR;
 `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .input("stationCode", sql.Int, stationCode)
@@ -115,7 +115,7 @@ ORDER BY dd.TIMEHOUR, ModelCount;
 `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const request = pool.request();
 
     request.input("stationCode", sql.Int, parseInt(stationCode));

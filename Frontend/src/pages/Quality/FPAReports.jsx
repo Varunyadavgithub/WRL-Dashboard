@@ -37,7 +37,7 @@ const FPAReports = () => {
       <Title title="FPA Reports" align="center" />
 
       {/* Filters Section */}
-      <div className="flex gap-4">
+      <div className="flex gap-2">
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-4xl items-center">
           <DateTimePicker
             label="Start Time"

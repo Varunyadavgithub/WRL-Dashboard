@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getFpaCount = async (req, res) => {
   const { startDate, endDate } = req.query;
@@ -77,7 +77,7 @@ ORDER BY ModelCount;
   `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .input("StartDate", sql.DateTime, new Date(startDate))

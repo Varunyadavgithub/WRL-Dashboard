@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const generateReport = async (req, res) => {
   const { startTime, endTime, model } = req.query;
@@ -67,7 +67,7 @@ WHERE
   query += " ORDER BY a.PSNo;";
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const request = pool
       .request()
       .input("startTime", sql.DateTime, new Date(startTime))

@@ -3,9 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 import path from "path";
-import { connectDB } from "./config/db.js";
+import { connectToDB, dbConfig1, dbConfig2, dbConfig3 } from "./config/db.js";
+// const _dirname = path.resolve();
 
-const _dirname = path.resolve();
 // <------------------------------------------------------------- All API Routes ------------------------------------------------------------->
 // <----- Shared Routes ----->
 import sharedRoutes from "./routes/sharedRoutes.js";
@@ -24,59 +24,71 @@ import totalProductionRoutes from "./routes/production/totalProduction.js";
 // <----- Quality Routes ----->
 import fpaRoutes from "./routes/quality/fpa.js";
 
+// <----- Dispatch Routes ----->
+import dispatchReportRoute from "./routes/dispatch/dispatchReport.js";
+import fgCastingRoute from "./routes/dispatch/fgCasting.js";
+
 // <----- Planing Routes ----->
 import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
 
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     credentials: true,
   })
 );
 app.use(express.json());
 app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
 
-// Serve the shared folder using your LAN IP
-// app.use("/uploads", express.static("E:\\FiveDaysProductionPlan"));
+// <------------------------------------------------------------- Connect to DB Servers ------------------------------------------------------------->
+(async () => {
+  try {
+    global.pool1 = await connectToDB(dbConfig1);
+    global.pool2 = await connectToDB(dbConfig2);
+    global.pool3 = await connectToDB(dbConfig3);
+  } catch (error) {}
+})();
 
-// Connect to DB
-connectDB();
-
-// <------------------------------------------------------------- Test API Route ------------------------------------------------------------->
+// <------------------------------------------------------------- Test API ------------------------------------------------------------->
 // app.get("/", (_, res) => {
 //   res.status(200).json({ message: "Backend is working correctly!" });
 // });
 
 // <------------------------------------------------------------- APIs ------------------------------------------------------------->
 // Shared API
-app.use("/api/v1/shared", sharedRoutes); //✅
+app.use("/api/v1/shared", sharedRoutes);
 
 // Production API
-app.use("/api/v1/prod", ProductionReportRoutes); //✅
-app.use("/api/v1/prod", componentTraceabilityReportRoutes); //✅
-app.use("/api/v1/prod", hourlyReportRoutes); //✅
-app.use("/api/v1/prod", lineHourlyReportRoutes); //✅
+app.use("/api/v1/prod", ProductionReportRoutes);
+app.use("/api/v1/prod", componentTraceabilityReportRoutes);
+app.use("/api/v1/prod", hourlyReportRoutes);
+app.use("/api/v1/prod", lineHourlyReportRoutes);
 // app.use("/api/v1/prod", consolidatedReportRoutes);
 // app.use("/api/v1/prod", stopLossReportRoutes);
-app.use("/api/v1/prod", stageHistoryReportRoutes); //✅
+app.use("/api/v1/prod", stageHistoryReportRoutes);
 // app.use("/api/v1/prod", modelNameUpdateRoutes);
-app.use("/api/v1/prod", totalProductionRoutes); //✅
+app.use("/api/v1/prod", totalProductionRoutes);
 
 // Quality API
 app.use("/api/v1/quality", fpaRoutes);
 
+// <----- Dispatch Routes ----->
+app.use("/api/v1/dispatch", dispatchReportRoute);
+app.use("/api/v1/dispatch", fgCastingRoute);
+
 // Planing API
 app.use("/api/v1/planing", fiveDaysPlaningRoutes);
 
-app.use(express.static(path.join(_dirname, "Frontend","dist")));
+// <------------------------------------------------------------- Serve Frontend from Backend ------------------------------------------------------------->
+// app.use(express.static(path.join(_dirname, "Frontend", "dist")));
 // Wildcard route to serve index.html ONLY if path does not start with /api
-app.get(/^\/(?!api\/).*/, (_, res) => {
-  res.sendFile(path.join(_dirname, 'Frontend', 'dist', 'index.html'));
-});
+// app.get(/^\/(?!api\/).*/, (_, res) => {
+//   res.sendFile(path.join(_dirname, "Frontend", "dist", "index.html"));
+// });
 
 // <------------------------------------------------------------- Start server ------------------------------------------------------------->
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port:${PORT}`);
 });

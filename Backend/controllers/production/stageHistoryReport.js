@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getCurrentStageStatus = async (req, res) => {
   const { serialNumber } = req.query;
@@ -45,7 +45,7 @@ ORDER BY
     `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const request = pool
       .request()
       .input("serialNumber", sql.NVarChar, serialNumber);

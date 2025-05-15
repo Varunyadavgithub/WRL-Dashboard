@@ -1,4 +1,4 @@
-import sql, { dbConfig } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 // Hourly Loading Controller
 // export const getHourlyLoadingQuery = async (req, res) => {
@@ -166,7 +166,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -204,7 +204,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
 `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -240,7 +240,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
 `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -266,7 +266,7 @@ AND PA.ActivityType = '5'
 GROUP BY MC.Name;
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -304,7 +304,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -341,7 +341,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -378,7 +378,7 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -405,7 +405,7 @@ GROUP BY MC.Name;
 
   `;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -420,7 +420,7 @@ export const getFormingHpFomA = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -434,7 +434,7 @@ export const getFormingHpFomB = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
@@ -448,7 +448,7 @@ export const getFormingHpFomCat = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(dbConfig1);
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));

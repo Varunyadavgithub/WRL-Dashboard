@@ -23,7 +23,6 @@ import DispatchHold from "../pages/Quality/DispatchHold";
 import HoldCabinateDetails from "../pages/Quality/HoldCabinateDetails";
 
 import DispatchPerformanceReport from "../pages/Dispatch/DispatchPerformanceReport";
-import FGUnloadingReport from "../pages/Dispatch/FGUnloadingReport";
 import DispatchReport from "../pages/Dispatch/DispatchReport";
 import FGCasting from "../pages/Dispatch/FGCasting";
 import GateEntry from "../pages/Dispatch/GateEntry";
@@ -94,10 +93,6 @@ function MainContent() {
         <Route
           path="/dispatch/dispatch-performance-report"
           element={<DispatchPerformanceReport />}
-        />
-        <Route
-          path="/dispatch/fg-unloading-report"
-          element={<FGUnloadingReport />}
         />
         <Route path="/dispatch/dispatch-report" element={<DispatchReport />} />
         <Route path="/dispatch/fg-casting" element={<FGCasting />} />
