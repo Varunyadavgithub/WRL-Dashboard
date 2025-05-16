@@ -53,7 +53,7 @@ ORDER BY su.TIMEHOUR;
 `;
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .input("stationCode", sql.Int, stationCode)
@@ -62,6 +62,7 @@ ORDER BY su.TIMEHOUR;
       .query(query);
 
     res.json(result.recordset);
+    await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
@@ -115,7 +116,7 @@ ORDER BY dd.TIMEHOUR, ModelCount;
 `;
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool.request();
 
     request.input("stationCode", sql.Int, parseInt(stationCode));
@@ -128,6 +129,7 @@ ORDER BY dd.TIMEHOUR, ModelCount;
 
     const result = await request.query(query);
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });

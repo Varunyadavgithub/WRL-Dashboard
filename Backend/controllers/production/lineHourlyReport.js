@@ -166,11 +166,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -204,11 +205,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
 `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -240,11 +242,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
 `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -266,11 +269,12 @@ AND PA.ActivityType = '5'
 GROUP BY MC.Name;
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -304,11 +308,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -341,11 +346,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -378,11 +384,12 @@ FROM Summary su
 ORDER BY su.TIMEHOUR;
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -405,11 +412,12 @@ GROUP BY MC.Name;
 
   `;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -420,11 +428,12 @@ export const getFormingHpFomA = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -434,11 +443,12 @@ export const getFormingHpFomB = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -448,11 +458,12 @@ export const getFormingHpFomCat = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   const query = ``;
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .query(replacePlaceholders(query, StartTime, EndTime));
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

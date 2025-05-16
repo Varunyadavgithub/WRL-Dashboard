@@ -2,7 +2,6 @@ import sql, { dbConfig2 } from "../../config/db.js";
 
 export const getDispatchMasterBySession = async (req, res) => {
   const { sessionId } = req.query;
-
   if (!sessionId) {
     return res.status(400).send("Missing sessionId.");
   }

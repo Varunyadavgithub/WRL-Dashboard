@@ -1,5 +1,5 @@
 import sql from "mssql";
-import dbConfig from "../config/db.js";
+import { dbConfig1 } from "../config/db.js";
 
 // Fetches a list of active model variants from the Material table.
 export const getModelVariants = async (_, res) => {
@@ -10,9 +10,10 @@ export const getModelVariants = async (_, res) => {
   `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool.request().query(query);
     res.json(result.recordset);
+    await pool.close();
   } catch (error) {
     console.error("SQL error:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -27,9 +28,10 @@ export const getStageNames = async (_, res) => {
   `;
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool.request().query(query);
     res.json(result.recordset);
+    await pool.close();
   } catch (error) {
     console.error("SQL error:", error);
     res.status(500).json({ success: false, error: error.message });

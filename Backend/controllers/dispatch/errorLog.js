@@ -1,8 +1,8 @@
 import sql, { dbConfig2 } from "../../config/db.js";
 
-export const getFgUnloading = async (req, res) => {
+export const getDispatchErrorLog = async (req, res) => {
   const { startDate, endDate } = req.query;
-
+console.log(startDate,endDate)
   if (!startDate || !endDate) {
     return res.status(400).send("Missing startDate or endDate.");
   }
@@ -14,10 +14,24 @@ export const getFgUnloading = async (req, res) => {
     SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
     SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
 
-    SELECT * 
-    FROM DispatchUnloading
-    WHERE DateTime >= @AdjustedStartDate AND DateTime <= @AdjustedEndDate;
-  `;
+    SELECT 
+    [Session_ID], 
+    [FGSerialNo], 
+    [AssetNo], 
+    [ModelName], 
+    [ModelCode],
+    [ErrorMessage],
+    b.ErrorName, 
+    [ErrorOn]  
+FROM 
+    [DispatchErrorLog] a 
+INNER JOIN 
+    errormaster b 
+ON 
+    a.ErrorID = b.ErrorID 
+WHERE 
+    ErrorOn >= @AdjustedStartDate AND ErrorOn <= @AdjustedEndDate;
+ `;
 
   try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
@@ -34,7 +48,3 @@ export const getFgUnloading = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
-export const getFgDispatch=async (req,res)=>{
-
-}

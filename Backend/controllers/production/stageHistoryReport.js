@@ -45,7 +45,7 @@ ORDER BY
     `;
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool
       .request()
       .input("serialNumber", sql.NVarChar, serialNumber);
@@ -55,6 +55,7 @@ ORDER BY
       success: true,
       result,
     });
+    await pool.close();
   } catch (error) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });

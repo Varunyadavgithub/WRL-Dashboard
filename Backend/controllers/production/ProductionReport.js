@@ -76,7 +76,7 @@ WHERE b.ActivityType = 5
   query += " ORDER BY SrNo;";
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool
       .request()
       .input("startTime", sql.DateTime, new Date(startTime))
@@ -89,6 +89,7 @@ WHERE b.ActivityType = 5
 
     const result = await request.query(query);
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });

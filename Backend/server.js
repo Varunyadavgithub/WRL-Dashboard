@@ -27,6 +27,7 @@ import fpaRoutes from "./routes/quality/fpa.js";
 // <----- Dispatch Routes ----->
 import dispatchReportRoute from "./routes/dispatch/dispatchReport.js";
 import fgCastingRoute from "./routes/dispatch/fgCasting.js";
+import errorLogRoute from "./routes/dispatch/errorLog.js";
 
 // <----- Planing Routes ----->
 import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
@@ -76,6 +77,7 @@ app.use("/api/v1/quality", fpaRoutes);
 // <----- Dispatch Routes ----->
 app.use("/api/v1/dispatch", dispatchReportRoute);
 app.use("/api/v1/dispatch", fgCastingRoute);
+app.use("/api/v1/dispatch", errorLogRoute);
 
 // Planing API
 app.use("/api/v1/planing", fiveDaysPlaningRoutes);

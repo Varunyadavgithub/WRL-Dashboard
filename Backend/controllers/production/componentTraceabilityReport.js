@@ -67,7 +67,7 @@ WHERE
   query += " ORDER BY a.PSNo;";
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool
       .request()
       .input("startTime", sql.DateTime, new Date(startTime))
@@ -82,6 +82,7 @@ WHERE
       success: true,
       result: result.recordset,
     });
+    await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });

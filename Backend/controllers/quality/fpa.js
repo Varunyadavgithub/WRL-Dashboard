@@ -77,7 +77,7 @@ ORDER BY ModelCount;
   `;
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
       .input("StartDate", sql.DateTime, new Date(startDate))
@@ -86,6 +86,7 @@ ORDER BY ModelCount;
       .query(query);
 
     res.json(result.recordset);
+    await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });

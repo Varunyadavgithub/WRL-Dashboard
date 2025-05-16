@@ -68,7 +68,7 @@ WHERE b.ActivityType = 5
   query += ` ORDER BY Psno.Serial;`;
 
   try {
-    const pool = await sql.connect(dbConfig1);
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool.request();
 
     request.input("startDate", sql.DateTime, new Date(startDate));
@@ -80,6 +80,7 @@ WHERE b.ActivityType = 5
 
     const result = await request.query(query);
     res.status(200).json(result.recordset);
+    await pool.close();
   } catch (error) {
     console.error("Error fetching barcode details:", error);
     res.status(500).json({ error: "Internal Server Error" });
