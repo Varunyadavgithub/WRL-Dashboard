@@ -11,8 +11,8 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const FPA = () => {
   const Shift = [
-    { label: "Morning Shift", value: "morning" },
-    { label: "Night Shift", value: "night" },
+    { label: "Morning Shift", value: "shift 1" },
+    { label: "Night Shift", value: "shift 2" },
   ];
   const defectCategories = [
     { label: "Crack", value: "crack" },
@@ -231,7 +231,7 @@ const FPA = () => {
                   onClick={() => console.log("Clicked")}
                   disabled={loading}
                 >
-                  Query
+                  Add Defect
                 </Button>
               </div>
 

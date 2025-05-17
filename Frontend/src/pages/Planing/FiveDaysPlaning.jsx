@@ -56,6 +56,7 @@ const FiveDaysPlanning = () => {
   // Preview file in Google Docs Viewer
   const previewFile = (file) => {
     const fileUrl = encodeURIComponent(`http://localhost:3000${file.url}`);
+    console.log(file.url)
     window.open(
       `https://docs.google.com/gview?url=${fileUrl}&embedded=true`,
       "_blank"

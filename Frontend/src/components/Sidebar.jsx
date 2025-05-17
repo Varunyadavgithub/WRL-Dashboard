@@ -43,7 +43,7 @@ const MENU_CONFIG = [
       { path: '/quality/fpa', label: 'FPA' },
       { path: '/quality/fpa-report', label: 'FPA Report' },
       { path: '/quality/dispatch-hold', label: 'Dispatch Hold' },
-      { path: '/quality/hold-cabinate-details', label: 'Hold Cabinate Details' },
+      { path: '/quality/hold-cabinate-details', label: 'Hold Cabinet Details' },
     ]
   },
   {

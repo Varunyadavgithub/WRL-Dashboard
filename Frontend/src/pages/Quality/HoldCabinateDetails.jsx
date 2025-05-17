@@ -6,24 +6,82 @@ import ExportButton from "../../components/common/ExportButton";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
 import Loader from "../../components/common/Loader";
+import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const HoldCabinateDetails = () => {
-  const [loading, setLoading] = useState(false);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const groupingOptions = [
+    { label: "ModelNo", value: "modelno" },
+    { label: "FGSerialNo", value: "fgserialno" },
+    { label: "HoldReason", value: "holdreason" },
+    { label: "CorrectiveAction", value: "correctiveaction" },
+    { label: "HoldBy", value: "holdby" },
+    { label: "Status", value: "status" },
+  ];
   const State = [
     { label: "Hold", value: "hold" },
     { label: "Release", value: "release" },
     { label: "All", value: "all" },
   ];
+
+  const [loading, setLoading] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [state, setState] = useState(State[0]);
+  const [holdCabinetDetails, setHoldCabinetDetails] = useState([]);
+  const [groupingCondition, setGroupingCondition] = useState(
+    groupingOptions[0]
+  );
+
+  const fetchHoldCabietDetails = async () => {
+    if (!startTime || !endTime || !state) {
+      alert("Please select both start and end time and state");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const params = {
+        status: state.value,
+        startDate: startTime,
+        endDate: endTime,
+      };
+      const res = await axios.get(`${baseURL}quality/hold-cabinet-details`, {
+        params,
+      });
+      console.log(res);
+      setHoldCabinetDetails(res?.data);
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGroupedData = () => {
+    if (!holdCabinetDetails.length || !groupingCondition) {
+      return [];
+    }
+
+    const grouped = holdCabinetDetails.reduce((acc, item) => {
+      const key = item[groupingCondition.label] || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([key, count]) => ({
+      key,
+      count,
+    }));
+  };
 
   const handleClearFilters = () => {
     setStartTime("");
     setEndTime("");
-    setState([]);
+    setState(State[0]);
+    setHoldCabinetDetails([]);
+    setGroupingCondition(groupingOptions[0]);
   };
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
@@ -66,7 +124,10 @@ const HoldCabinateDetails = () => {
             />
             <div className="flex items-center justify-center">
               <div className="text-left font-bold text-lg">
-                COUNT: <span className="text-blue-700">000</span>
+                COUNT:{" "}
+                <span className="text-blue-700">
+                  {holdCabinetDetails.length || "00"}
+                </span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -76,12 +137,15 @@ const HoldCabinateDetails = () => {
                 className={`font-semibold ${
                   loading ? "cursor-not-allowed" : ""
                 }`}
-                onClick={console.log("Clicked")}
+                onClick={() => fetchHoldCabietDetails()}
                 disabled={loading}
               >
                 Query
               </Button>
-              <ExportButton />
+              <ExportButton
+                data={holdCabinetDetails}
+                filename="hold_cabinet_details"
+              />
             </div>
           </div>
         </div>
@@ -100,72 +164,74 @@ const HoldCabinateDetails = () => {
                   <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                       <tr>
-                        <th className="px-1 py-1 border max-w-[120px]">
-                          Sr.No.
+                        <th className="px-1 py-1 border min-w-[120px]">
+                          ModelNo
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          Model_Name
+                          FGSerialNo
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          Model_No.
+                          HoldReason
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          Station_Code
+                          Hold Date
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          Assembly Sr.No
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Asset tag
+                          HoldBy
                         </th>
                         <th className="px-1 py-1 border max-w-[120px]">
-                          Customer_QR
+                          DaysOnHold
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          UserName
+                          CorrectiveAction
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          FG Serial_No.
+                          ReleasedOn
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          CreatedOn
+                          ReleasedBy
+                        </th>
+                        <th className="px-1 py-1 border min-w-[120px]">
+                          Status
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {/* {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
+                      {holdCabinetDetails.length > 0 ? (
+                        holdCabinetDetails.map((item, index) => (
                           <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">{item.SrNo}</td>
+                            <td className="px-1 py-1 border">{item.ModelNo}</td>
                             <td className="px-1 py-1 border">
-                              {item.Model_Name}
+                              {item.FGSerialNo}
                             </td>
                             <td className="px-1 py-1 border">
-                              {item.ModelName}
+                              {item.HoldReason}
                             </td>
                             <td className="px-1 py-1 border">
-                              {item.StationCode}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Assembly_Sr_No}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Asset_tag}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Customer_QR}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.UserName}
-                            </td>
-                            <td className="px-1 py-1 border">{item.FG_SR}</td>
-                            <td className="px-1 py-1 border">
-                              {item.CreatedOn &&
-                                item.CreatedOn.replace("T", " ").replace(
+                              {item.HoldDate &&
+                                item.HoldDate.replace("T", " ").replace(
                                   "Z",
                                   ""
                                 )}
                             </td>
+                            <td className="px-1 py-1 border">{item.HoldBy}</td>
+                            <td className="px-1 py-1 border">
+                              {item.DaysOnHold}
+                            </td>
+                            <td className="px-1 py-1 border">
+                              {item.CorrectiveAction}
+                            </td>
+                            <td className="px-1 py-1 border">
+                              {item.ReleasedOn &&
+                                item.ReleasedOn.replace("T", " ").replace(
+                                  "Z",
+                                  ""
+                                )}
+                            </td>
+                            <td className="px-1 py-1 border">
+                              {item.ReleasedBy}
+                            </td>
+                            <td className="px-1 py-1 border">{item.Status}</td>
                           </tr>
                         ))
                       ) : (
@@ -174,7 +240,7 @@ const HoldCabinateDetails = () => {
                             No data found.
                           </td>
                         </tr>
-                      )} */}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -193,9 +259,35 @@ const HoldCabinateDetails = () => {
                 >
                   Clear Filter
                 </Button>
-                <ExportButton />
+                <ExportButton
+                  data={getGroupedData}
+                  filename="hold_cabinet_details_summary"
+                />
               </div>
-
+              <div className="bg-white border border-gray-300 rounded-md p-4">
+                <h4 className="font-semibold mb-3">Grouping Condition</h4>
+                <div className="flex flex-wrap items-center gap-4">
+                  <SelectField
+                    label="Group"
+                    options={groupingOptions}
+                    value={groupingCondition.value}
+                    onChange={(e) => {
+                      const selected = groupingOptions.find(
+                        (item) => item.value === e.target.value
+                      );
+                      setGroupingCondition(selected);
+                    }}
+                  />
+                  <Button
+                    bgColor="bg-blue-500"
+                    textColor="text-white"
+                    className="hover:bg-blue-600"
+                    onClick={() => console.log("Go clicked")}
+                  >
+                    Go
+                  </Button>
+                </div>
+              </div>
               {/* Summary Table */}
               <div className="w-full max-h-[500px] overflow-x-auto">
                 {loading ? (
@@ -204,45 +296,29 @@ const HoldCabinateDetails = () => {
                   <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                       <tr>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          Model_Name
+                        <th className="px-1 py-1 border min-w-[120px]">
+                          {groupingCondition.label}
                         </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          StartSerial
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          EndSerial
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+                        <th className="px-1 py-1 border min-w-[120px]">
                           Count
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {/* {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
+                      {getGroupedData().length > 0 ? (
+                        getGroupedData().map((item, index) => (
                           <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.StartSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.EndSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.TotalCount}
-                            </td>
+                            <td className="px-1 py-1 border">{item.key}</td>
+                            <td className="px-1 py-1 border">{item.count}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="text-center py-4">
-                            No data found.
+                          <td colSpan={2} className="text-center py-4">
+                            No data.
                           </td>
                         </tr>
-                      )} */}
+                      )}
                     </tbody>
                   </table>
                 )}
