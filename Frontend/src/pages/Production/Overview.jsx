@@ -102,32 +102,34 @@ const Overview = () => {
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         {/* First Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-wrap gap-2">
           <SelectField
             label="Model Variant"
             options={variants}
-            value={selectedVariant?.value || ""} // Default to an empty string if no variant is selected
+            value={selectedVariant?.value || ""}
             onChange={(e) =>
               setSelectedVariant(
-                variants.find((opt) => opt.value === e.target.value) || 0 // Set null if no match is found
+                variants.find((opt) => opt.value === e.target.value) || 0
               )
             }
+            className="max-w-64"
           />
 
           <SelectField
             label="Stage Name"
             options={stages}
-            value={selectedStage?.value || ""} // Use only the value here
+            value={selectedStage?.value || ""}
             onChange={(e) =>
               setSelectedStage(
                 stages.find((opt) => opt.value === e.target.value) || 0
               )
-            } // Find the option object by value
+            } 
+            className="max-w-64"
           />
         </div>
 
         {/* Second Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="flex flex-wrap gap-2">
           <DateTimePicker
             label="Start Time"
             name="startTime"
@@ -143,16 +145,16 @@ const Overview = () => {
         </div>
 
         {/* Third Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2">
           <div>
             <InputField
               label="Details"
               type="text"
               placeholder="Enter details"
-              className="w-full"
+              className="max-w-64"
             />
           </div>
-          <div className="flex flex-wrap items-end gap-2 mt-4 w-full">
+          <div className="flex flex-wrap gap-2 mt-4">
             <Button
               bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
               textColor={loading ? "text-white" : "text-black"}
