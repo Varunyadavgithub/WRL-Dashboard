@@ -15,6 +15,9 @@ const FPAReports = () => {
   const [variants, setVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [reportType, setReportType] = useState("fpaReport");
+  const [reportData, setReportData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [details, setDetails] = useState("");
 
   const fetchModelVariants = async () => {
     try {
@@ -29,9 +32,67 @@ const FPAReports = () => {
     }
   };
 
+  const handleQuery = async () => {
+    if (!startTime || !endTime) {
+      alert("Please select both Start Time and End Time.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const params = {
+        startDate: startTime,
+        endDate: endTime,
+      };
+
+      if (reportType === "fpaReport") {
+        const res = await axios.get(`${baseURL}quality/fpa-report`, { params });
+        console.log(res);
+        setReportData(res.data);
+      } else if (reportType === "dailyFpaReport") {
+        const res = await axios.get(`${baseURL}quality/fpa-daily-report`, {
+          params,
+        });
+        console.log(res);
+        setReportData(res.data);
+      } else if (reportType === "monthlyFpaReport") {
+        const res = await axios.get(`${baseURL}quality/fpa-monthly-report`, {
+          params,
+        });
+        console.log(res);
+        setReportData(res.data);
+      } else if (reportType === "yearlyFpaReport") {
+        const res = await axios.get(`${baseURL}quality/fpa-yearly-report`, {
+          params,
+        });
+        console.log(res);
+        setReportData(res.data);
+      } else {
+        alert("Please select the Report Type.");
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to fetch FPA Report:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchModelVariants();
   }, []);
+
+  useEffect(() => {
+    setReportData([]);
+  }, [reportType]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setDetails(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
       <Title title="FPA Reports" align="center" />
@@ -62,12 +123,15 @@ const FPAReports = () => {
             }
           />
           <InputField
-            label="Details"
+            label="Search"
             type="text"
             placeholder="Enter details"
             className="w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 rounded-md mt-6">
           {/* Buttons and Checkboxes */}
           <div className="flex flex-wrap items-center gap-4">
@@ -123,21 +187,219 @@ const FPAReports = () => {
                   className={`font-semibold ${
                     loading ? "cursor-not-allowed" : ""
                   }`}
-                  onClick={console.log("clicked")}
+                  onClick={handleQuery}
                   disabled={loading}
                 >
                   Query
                 </Button>
               </div>
               <div className="text-left font-bold text-lg">
-                COUNT: <span className="text-blue-700">000</span>
+                COUNT:{" "}
+                <span className="text-blue-700">
+                  {reportData.length || "0"}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       {/* Summary Section */}
-      <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md"></div>
+      <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
+        <div className="mt-6">
+          {reportType === "fpaReport" && (
+            <FpaReportTable
+              data={reportData.filter((item) =>
+                details
+                  ? item.Remark?.toLowerCase().includes(
+                      details.toLowerCase()
+                    ) ||
+                    item.AddDefect?.toLowerCase().includes(
+                      details.toLowerCase()
+                    )
+                  : true
+              )}
+            />
+          )}
+          {reportType === "dailyFpaReport" && (
+            <DailyFpaReportTable data={reportData} />
+          )}
+          {reportType === "monthlyFpaReport" && (
+            <MonthlyFpaReportTable data={reportData} />
+          )}
+          {reportType === "yearlyFpaReport" && (
+            <YearlyFpaReportTable data={reportData} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FpaReportTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">SRNO</th>
+            <th className="px-1 py-1 border min-w-[120px]">Date</th>
+            <th className="px-1 py-1 border min-w-[120px]">Model</th>
+            <th className="px-1 py-1 border min-w-[120px]">Shift</th>
+            <th className="px-1 py-1 border min-w-[120px]">FGSRNO</th>
+            <th className="px-1 py-1 border min-w-[120px]">Category</th>
+            <th className="px-1 py-1 border min-w-[120px]">Add Defect</th>
+            <th className="px-1 py-1 border min-w-[120px]">Remark</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.SRNo}</td>
+                <td className="px-1 py-1 border">
+                  {row.Date && row.Date.replace("T", " ").replace("Z", "")}
+                </td>
+                <td className="px-1 py-1 border">{row.Model}</td>
+                <td className="px-1 py-1 border">{row.Shift}</td>
+                <td className="px-1 py-1 border">{row.FGSRNo}</td>
+                <td className="px-1 py-1 border">{row.Category}</td>
+                <td className="px-1 py-1 border">{row.AddDefect}</td>
+                <td className="px-1 py-1 border">{row.Remark}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={8} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const DailyFpaReportTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Date</th>
+            <th className="px-1 py-1 border min-w-[120px]">Month</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Critical</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Major</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Minor</th>
+            <th className="px-1 py-1 border min-w-[120px]">Sample Inspected</th>
+            <th className="px-1 py-1 border min-w-[120px]">FPQI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">
+                  {row.Date && row.Date.replace("T", " ").replace("Z", "")}
+                </td>
+                <td className="px-1 py-1 border">{row.Month}</td>
+                <td className="px-1 py-1 border">{row.NoOfCritical}</td>
+                <td className="px-1 py-1 border">{row.NoOfMajor}</td>
+                <td className="px-1 py-1 border">{row.NoOfMinor}</td>
+                <td className="px-1 py-1 border">{row.SampleInspected}</td>
+                <td className="px-1 py-1 border">{row.FPQI}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const MonthlyFpaReportTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Month</th>
+            <th className="px-1 py-1 border min-w-[120px]">Year</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Critical</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Major</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Minor</th>
+            <th className="px-1 py-1 border min-w-[120px]">Sample Inspected</th>
+            <th className="px-1 py-1 border min-w-[120px]">FPQI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.Month}</td>
+                <td className="px-1 py-1 border">{row.Year}</td>
+                <td className="px-1 py-1 border">{row.NoOfCritical}</td>
+                <td className="px-1 py-1 border">{row.NoOfMajor}</td>
+                <td className="px-1 py-1 border">{row.NoOfMinor}</td>
+                <td className="px-1 py-1 border">{row.SampleInspected}</td>
+                <td className="px-1 py-1 border">{row.FPQI}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const YearlyFpaReportTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Year</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Critical</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Major</th>
+            <th className="px-1 py-1 border min-w-[120px]">No Of Minor</th>
+            <th className="px-1 py-1 border min-w-[120px]">Sample Inspected</th>
+            <th className="px-1 py-1 border min-w-[120px]">FPQI</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.Year}</td>
+                <td className="px-1 py-1 border">{row.NoOfCritical}</td>
+                <td className="px-1 py-1 border">{row.NoOfMajor}</td>
+                <td className="px-1 py-1 border">{row.NoOfMinor}</td>
+                <td className="px-1 py-1 border">{row.SampleInspected}</td>
+                <td className="px-1 py-1 border">{row.FPQI}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };

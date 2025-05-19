@@ -6,10 +6,76 @@ import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const DispatchPerformanceReport = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dispatchType, setDispatchType] = useState("vehicleUph");
+  const [dispatchData, setDispatchData] = useState([]);
+  const [dispatchSummaryData, setDispatchSummaryData] = useState([]);
+
+  const handleQuery = async () => {
+    if (!startTime || !endTime) {
+      alert("Please select both Start Time and End Time.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const params = {
+        startDate: startTime,
+        endDate: endTime,
+      };
+
+      if (dispatchType === "vehicleUph") {
+        const res = await axios.get(`${baseURL}dispatch/vehicle-uph`, {
+          params,
+        });
+        console.log(res);
+        setDispatchData(res.data);
+        const summRes = await axios.get(`${baseURL}dispatch/vehicle-summary`, {
+          params,
+        });
+        console.log(summRes);
+        setDispatchSummaryData(summRes.data);
+      } else if (dispatchType === "modelUph") {
+        const res = await axios.get(`${baseURL}dispatch/model-count`, {
+          params,
+        });
+        console.log(res);
+        setDispatchData(res.data);
+        const summRes = await axios.get(`${baseURL}dispatch/model-summary`, {
+          params,
+        });
+        console.log(summRes);
+        setDispatchSummaryData(summRes.data);
+      } else if (dispatchType === "categoryUph") {
+        const res = await axios.get(`${baseURL}dispatch/category-model-count`, {
+          params,
+        });
+        console.log(res);
+        setDispatchData(res.data);
+        const summRes = await axios.get(`${baseURL}dispatch/category-summary`, {
+          params,
+        });
+        console.log(summRes);
+        setDispatchSummaryData(summRes.data);
+      } else {
+        alert("Please select the Report Type.");
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to fetch FPA Report:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setDispatchData([]);
+    setDispatchSummaryData([]);
+  }, [dispatchType]);
 
   const handleClearFilters = () => {
     setSelectedVariant(null);
@@ -20,7 +86,7 @@ const DispatchPerformanceReport = () => {
   };
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
-      <Title title="Hourly Report" align="center" />
+      <Title title="Performance Report" align="center" />
 
       {/* Filters */}
       <div className="flex gap-2">
@@ -45,13 +111,34 @@ const DispatchPerformanceReport = () => {
               <div>
                 <div className="flex flex-col gap-1">
                   <label>
-                    <input type="radio" name="lineType" /> Vehicle Loading UPH
+                    <input
+                      type="radio"
+                      name="dispatchType"
+                      value="vehicleUph"
+                      checked={dispatchType === "vehicleUph"}
+                      onChange={(e) => setDispatchType(e.target.value)}
+                    />
+                    Vehicle Loading UPH
                   </label>
                   <label>
-                    <input type="radio" name="lineType" /> Model UPH
+                    <input
+                      type="radio"
+                      name="dispatchType"
+                      value="modelUph"
+                      checked={dispatchType === "modelUph"}
+                      onChange={(e) => setDispatchType(e.target.value)}
+                    />
+                    Model UPH
                   </label>
                   <label>
-                    <input type="radio" name="lineType" /> Category UPH
+                    <input
+                      type="radio"
+                      name="dispatchType"
+                      value="categoryUph"
+                      checked={dispatchType === "categoryUph"}
+                      onChange={(e) => setDispatchType(e.target.value)}
+                    />
+                    Category UPH
                   </label>
                 </div>
               </div>
@@ -62,7 +149,7 @@ const DispatchPerformanceReport = () => {
                   className={`font-semibold ${
                     loading ? "cursor-not-allowed" : ""
                   }`}
-                  onClick={console.log("Clicked")}
+                  onClick={handleQuery}
                   disabled={loading}
                 >
                   Query
@@ -72,7 +159,10 @@ const DispatchPerformanceReport = () => {
             </div>
             {/* Count */}
             <div className="mt-4 text-left font-bold text-lg">
-              COUNT: <span className="text-blue-700">0</span>
+              COUNT:{" "}
+              <span className="text-blue-700">
+                {dispatchSummaryData.length || "0"}
+              </span>
             </div>
           </div>
         </div>
@@ -80,10 +170,6 @@ const DispatchPerformanceReport = () => {
 
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        <div className="flex flex-col items-center mb-4">
-          <span className="text-xl font-semibold">Summary</span>
-        </div>
-
         <div className="bg-white border border-gray-300 rounded-md p-2">
           <div className="flex flex-col md:flex-row items-start gap-1">
             {/* Left Side - Detailed Table */}
@@ -91,87 +177,16 @@ const DispatchPerformanceReport = () => {
               {loading ? (
                 <Loader />
               ) : (
-                <div className="w-full max-h-[600px] overflow-x-auto">
-                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                    <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr>
-                        <th className="px-1 py-1 border max-w-[120px]">
-                          Sr.No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Model_Name
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Model_No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Station_Code
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Assembly Sr.No
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          Asset tag
-                        </th>
-                        <th className="px-1 py-1 border max-w-[120px]">
-                          Customer_QR
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          UserName
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          FG Serial_No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
-                          CreatedOn
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">{item.SrNo}</td>
-                            <td className="px-1 py-1 border">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.ModelName}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.StationCode}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Assembly_Sr_No}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Asset_tag}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Customer_QR}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.UserName}
-                            </td>
-                            <td className="px-1 py-1 border">{item.FG_SR}</td>
-                            <td className="px-1 py-1 border">
-                              {item.CreatedOn &&
-                                item.CreatedOn.replace("T", " ").replace(
-                                  "Z",
-                                  ""
-                                )}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={12} className="text-center py-4">
-                            No data found.
-                          </td>
-                        </tr>
-                      )} */}
-                    </tbody>
-                  </table>
+                <div className="mt-6">
+                  {dispatchType === "vehicleUph" && (
+                    <DispatchVehicleUph data={dispatchData} />
+                  )}
+                  {dispatchType === "modelUph" && (
+                    <DispatchModelUph data={dispatchData} />
+                  )}
+                  {dispatchType === "categoryUph" && (
+                    <DispatchCategoryUph data={dispatchData} />
+                  )}
                 </div>
               )}
             </div>
@@ -196,50 +211,17 @@ const DispatchPerformanceReport = () => {
                 {loading ? (
                   <Loader />
                 ) : (
-                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                    <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          Model_Name
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          StartSerial
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          EndSerial
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                          Count
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.StartSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.EndSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.TotalCount}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="text-center py-4">
-                            No data found.
-                          </td>
-                        </tr>
-                      )} */}
-                    </tbody>
-                  </table>
+                  <>
+                    {dispatchType === "vehicleUph" && (
+                      <DispatchSummaryVehicleUph data={dispatchSummaryData} />
+                    )}
+                    {dispatchType === "modelUph" && (
+                      <DispatchSummaryModelUph data={dispatchSummaryData} />
+                    )}
+                    {dispatchType === "categoryUph" && (
+                      <DispatchSummaryCategoryUph data={dispatchSummaryData} />
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -247,6 +229,219 @@ const DispatchPerformanceReport = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const DispatchVehicleUph = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Hour Number</th>
+            <th className="px-1 py-1 border min-w-[120px]">Time Hour</th>
+            <th className="px-1 py-1 border min-w-[120px]">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
+                <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
+                <td className="px-1 py-1 border">{row.COUNT}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={3} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const DispatchModelUph = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">HOUR NUMBER</th>
+            <th className="px-1 py-1 border min-w-[120px]">TIME HOUR</th>
+            <th className="px-1 py-1 border min-w-[120px]">COUNT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
+                <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
+                <td className="px-1 py-1 border">{row.COUNT}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={3} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const DispatchCategoryUph = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">COUNT</th>
+            <th className="px-1 py-1 border min-w-[120px]">HOUR NUMBER</th>
+            <th className="px-1 py-1 border min-w-[120px]">TIME HOUR</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.COUNT}</td>
+                <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
+                <td className="px-1 py-1 border">{row.TIMEHOUR}</td>{" "}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={8} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// <------- Summay Table ------->
+
+const DispatchSummaryVehicleUph = ({ data }) => {
+  return (
+    <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+      <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+        <tr>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Hour Number
+          </th>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Time Hour
+          </th>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Session ID
+          </th>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Model Count
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
+              <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
+              <td className="px-1 py-1 border">{row.session_ID}</td>
+              <td className="px-1 py-1 border">{row.Model_Count}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={8} className="text-center py-4">
+              No data found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+};
+
+const DispatchSummaryModelUph = ({ data }) => {
+  return (
+    <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+      <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+        <tr>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Time Hour
+          </th>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Model Name
+          </th>
+
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Count
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
+              <td className="px-1 py-1 border">{row.ModelName}</td>
+              <td className="px-1 py-1 border">{row.COUNT}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={8} className="text-center py-4">
+              No data found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+};
+
+const DispatchSummaryCategoryUph = ({ data }) => {
+  return (
+    <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+      <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+        <tr>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Model Name
+          </th>
+          <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+            Count
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {data && data.length > 0 ? (
+          data.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-100">
+              <td className="px-1 py-1 border">{row.ModelName}</td>
+              <td className="px-1 py-1 border">{row.COUNT}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={8} className="text-center py-4">
+              No data found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   );
 };
 
