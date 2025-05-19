@@ -31,6 +31,7 @@ const FPA = () => {
   );
   const [manualCategory, setManualCategory] = useState("");
   const [fpaCountData, setFpaDataCount] = useState([]);
+  const [assetDetails, setAssetDetails] = useState([]);
 
   const handleFPACountQuery = async () => {
     if (!startTime || !endTime) {
@@ -47,6 +48,30 @@ const FPA = () => {
 
       const res = await axios.get(`${baseURL}quality/fpa-count`, { params });
       setFpaDataCount(res?.data);
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAssetDetails = async () => {
+    if (!barcodeNumber) {
+      alert("Please select Barcode Number");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const params = {
+        AssemblySerial: barcodeNumber,
+      };
+
+      const res = await axios.get(`${baseURL}quality/asset-details`, {
+        params,
+      });
+      console.log(res);
+      setAssetDetails(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -80,7 +105,7 @@ const FPA = () => {
                 className={`font-semibold ${
                   loading ? "cursor-not-allowed" : ""
                 }`}
-                onClick={console.log("Search btn clicked")}
+                onClick={getAssetDetails}
                 disabled={loading}
               >
                 Search
@@ -90,13 +115,20 @@ const FPA = () => {
             {/* Info Section */}
             <div className="flex flex-col gap-3 justify-center text-center">
               <h1 className="font-bold text-lg">
-                FG No: <span className="text-blue-700">0</span>
+                FG No:
+                <span className="text-blue-700">{assetDetails.FGNo || 0}</span>
               </h1>
               <h1 className="font-bold text-lg">
-                Asset No: <span className="text-blue-700">0</span>
+                Asset No:
+                <span className="text-blue-700">
+                  {assetDetails.AssetNo || 0}
+                </span>
               </h1>
               <h1 className="font-bold text-lg">
-                Model Name: <span className="text-blue-700">0</span>
+                Model Name:
+                <span className="text-blue-700">
+                  {assetDetails.ModelName || 0}
+                </span>
               </h1>
             </div>
 

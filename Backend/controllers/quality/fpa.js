@@ -10,8 +10,8 @@ export const getFpaCount = async (req, res) => {
   // Get current date in 'yyyy-MM-dd' to avoid SQL errors
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
   const reportDateStr = `${year}-${month}-${day}`;
 
   const query = `
@@ -93,5 +93,47 @@ export const getFpaCount = async (req, res) => {
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const getAssetDetails = async (req, res) => {
+  const { AssemblySerial } = req.query;
+
+  if (!AssemblySerial) {
+    return res.status(400).send("Missing AssemblySerial.");
+  }
+
+  const query = `
+    SELECT 
+      mb.Serial + '~' + mb.VSerial + '~' + m.Alias AS combinedserial
+    FROM 
+      MaterialBarcode AS mb
+    INNER JOIN 
+      Material AS m ON m.MatCode = mb.Material
+    WHERE 
+      mb.Alias = @AssemblySerial;
+  `;
+
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
+
+    const result = await pool
+      .request()
+      .input("AssemblySerial", sql.VarChar, AssemblySerial)
+      .query(query);
+
+    const combined = result.recordset[0]?.combinedserial;
+
+    if (!combined) {
+      return res.json({ FGNo: null, AssetNo: null, ModelName: null });
+    }
+
+    const [FGNo, AssetNo, ModelName] = combined.split("~");
+
+    res.json({ FGNo, AssetNo, ModelName });
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ combinedserial: "~" + err.message });
   }
 };

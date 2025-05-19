@@ -12,15 +12,23 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const ErrorLog = () => {
   const groupingOptions = [
-    { label: "Model", value: "model" },
-    { label: "Stage", value: "stage" },
-    { label: "Activity", value: "activity" },
+    { label: "Session_ID", value: "sessionid" },
+    { label: "FGSerialNo", value: "fgserialno" },
+    { label: "AssetNo", value: "assetno" },
+    { label: "ModelName", value: "modelname" },
+    { label: "ModelCode", value: "modelcode" },
+    { label: "ErrorMessage", value: "errormessage" },
+    { label: "ErrorName", value: "errorname" },
   ];
 
   const [loading, setLoading] = useState(false);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [errorLogData, setErrorLogData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [groupingCondition, setGroupingCondition] = useState(
+    groupingOptions[0]
+  );
 
   const fetchErrorLogData = async () => {
     if (!startTime || !endTime) return;
@@ -39,10 +47,34 @@ const ErrorLog = () => {
     }
   };
 
+  const getGroupedData = () => {
+    if (!errorLogData.length || !groupingCondition) {
+      return [];
+    }
+
+    const grouped = errorLogData.reduce((acc, item) => {
+      const key = item[groupingCondition.label] || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([key, count]) => ({
+      key,
+      count,
+    }));
+  };
+
   const handleQuery = () => {
     fetchErrorLogData();
   };
 
+  const handleClearFilters = () => {
+    setStartTime("");
+    setEndTime("");
+    setErrorLogData([]);
+    setSearchTerm("");
+    setGroupingCondition(groupingOptions[0]);
+  };
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Title title="Dispatch Error Log" align="center" />
@@ -68,10 +100,12 @@ const ErrorLog = () => {
 
         <div className="flex flex-wrap gap-4">
           <InputField
-            label="Filter"
+            label="Search"
             type="text"
             placeholder="Enter details"
-            className="max-w-64"
+            className="w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="flex flex-wrap items-end gap-2 mt-1">
             <Button
@@ -83,7 +117,7 @@ const ErrorLog = () => {
             >
               Query
             </Button>
-            <ExportButton/>
+            <ExportButton />
           </div>
         </div>
       </div>
@@ -98,7 +132,7 @@ const ErrorLog = () => {
               bgColor="bg-white"
               textColor="text-black"
               className="border border-gray-400 hover:bg-gray-100"
-              onClick={() => console.log("Clear Filter clicked")}
+              onClick={handleClearFilters}
             >
               Clear Filter
             </Button>
@@ -199,7 +233,17 @@ const ErrorLog = () => {
                 <h4 className="font-semibold mb-3">Grouping Condition</h4>
                 <div className="flex flex-wrap items-center gap-4">
                   <label className="font-medium">Group By</label>
-                  <SelectField options={groupingOptions} />
+                  <SelectField
+                    label="Group"
+                    options={groupingOptions}
+                    value={groupingCondition.value}
+                    onChange={(e) => {
+                      const selected = groupingOptions.find(
+                        (item) => item.value === e.target.value
+                      );
+                      setGroupingCondition(selected);
+                    }}
+                  />
                   <Button
                     bgColor="bg-blue-500"
                     textColor="text-white"
@@ -220,7 +264,7 @@ const ErrorLog = () => {
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                       <tr>
                         <th className="px-1 py-1 border min-w-[120px]">
-                          Model_Name
+                          {groupingCondition.label}
                         </th>
                         <th className="px-1 py-1 border min-w-[120px]">
                           Count
@@ -228,12 +272,20 @@ const ErrorLog = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {[1, 2, 3, 4, 5].map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-100">
-                          <td className="px-1 py-1 border">Model_01</td>
-                          <td className="px-1 py-1 border">201</td>
+                      {getGroupedData().length > 0 ? (
+                        getGroupedData().map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-100">
+                            <td className="px-1 py-1 border">{item.key}</td>
+                            <td className="px-1 py-1 border">{item.count}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={2} className="text-center py-4">
+                            No data.
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 )}

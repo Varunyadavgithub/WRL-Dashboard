@@ -211,8 +211,9 @@ const FPAReports = () => {
             <FpaReportTable
               data={reportData.filter((item) =>
                 details
-                  ? item.Remark?.toLowerCase().includes(
-                      details.toLowerCase()
+                  ? item.Model?.toLowerCase().includes(details.toLowerCase()) ||
+                    item.FGSRNo?.toLowerCase().includes(
+                      details.toLocaleLowerCase()
                     ) ||
                     item.AddDefect?.toLowerCase().includes(
                       details.toLowerCase()
