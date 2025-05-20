@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import SelectField from "../../components/common/SelectField";
 import InputField from "../../components/common/InputField";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -34,7 +35,7 @@ const FPAReports = () => {
 
   const handleQuery = async () => {
     if (!startTime || !endTime) {
-      alert("Please select both Start Time and End Time.");
+      toast.error("Please select Time Range.");
       return;
     }
     setLoading(true);

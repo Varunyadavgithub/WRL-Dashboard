@@ -23,7 +23,7 @@ SELECT
     B.Name AS StationName,
     B.Alias AS StationAlias,
     A.ActivityOn,
-    Psno.Serial2,
+    Psno.Serial2 As CustomerQR,
     Psno.VSerial,
     Psno.Alias AS BarcodeAlias,
     Psno.Serial,

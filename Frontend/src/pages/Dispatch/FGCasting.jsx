@@ -6,6 +6,7 @@ import InputField from "../../components/common/InputField";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -16,7 +17,10 @@ const FGCasting = () => {
   const [fetchFgCastingData, setFetchFgCastingData] = useState([]);
 
   const fetchFgCastingDataBySession = async () => {
-    if (!serialNumber) return;
+    if (!serialNumber) {
+      toast.error("Please select Serial Number.");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.get(`${baseURL}dispatch/fg-casting`, {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,7 +16,10 @@ function StageHistoryReport() {
   const [productName, setProductName] = useState("");
 
   const fetchStageHistoryData = async () => {
-    if (!serialNumber) return;
+    if (!serialNumber) {
+      toast.error("Please select Serial Number.");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.get(`${baseURL}prod/stage-history`, {
@@ -98,6 +102,9 @@ function StageHistoryReport() {
                         Activity On
                       </th>
                       <th className="px-1 py-1 border min-w-[120px]">
+                        Customer QR
+                      </th>
+                      <th className="px-1 py-1 border min-w-[120px]">
                         V Serial
                       </th>
                       {/* <th className="px-1 py-1 border min-w-[120px]">Alias 1</th> */}
@@ -128,6 +135,9 @@ function StageHistoryReport() {
                                 "Z",
                                 ""
                               )}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.CustomerQR}
                           </td>
                           <td className="px-1 py-1 border">{item.VSerial}</td>
                           {/* <td className="px-1 py-1 border">{item.Alias 1}</td> */}

@@ -137,3 +137,48 @@ export const getAssetDetails = async (req, res) => {
     res.status(500).json({ combinedserial: "~" + err.message });
   }
 };
+
+export const getFPQIDetails = async (req, res) => {
+  const today = new Date().toISOString().split("T")[0];
+
+  const query = `
+    SELECT 
+      COUNT(DISTINCT FGSRNo) AS TotalFGSRNo,
+      SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS NoOfCritical,
+      SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS NoOfMajor,
+      SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS NoOfMinor,
+      CAST((
+          (SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9) + 
+          (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6) + 
+          (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
+      ) AS FLOAT) / NULLIF(COUNT(DISTINCT FGSRNo), 0) AS FPQI
+    FROM FPAReport
+    WHERE Date = @Date;
+  `;
+
+  try {
+    const pool = await sql.connect(dbConfig1);
+
+    const result = await pool
+      .request()
+      .input("Date", sql.Date, today) 
+      .query(query);
+
+    if (!result.recordset.length) {
+      return res.json({
+        TotalFGSRNo: 0,
+        NoOfCritical: 0,
+        NoOfMajor: 0,
+        NoOfMinor: 0,
+        FPQI: 0,
+      });
+    }
+
+    res.json(result.recordset[0]);
+
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};

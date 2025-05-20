@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,10 +45,10 @@ const FiveDaysPlanning = () => {
         ...prev,
       ]);
 
-      alert("File uploaded successfully");
+      toast.success("File uploaded successfully");
     } catch (error) {
       console.error("Upload failed", error);
-      alert("File upload failed");
+      toast.error("File upload failed");
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ const FiveDaysPlanning = () => {
   // Preview file in Google Docs Viewer
   const previewFile = (file) => {
     const fileUrl = encodeURIComponent(`http://localhost:3000${file.url}`);
-    console.log(file.url)
+    console.log(file.url);
     window.open(
       `https://docs.google.com/gview?url=${fileUrl}&embedded=true`,
       "_blank"

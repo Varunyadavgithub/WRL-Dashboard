@@ -15,6 +15,7 @@ import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -60,7 +61,9 @@ const HourlyReport = () => {
   };
 
   const fetchHourlyProduction = async () => {
-    if (!stationCode || !startTime || !endTime) return;
+    if (!stationCode || !startTime || !endTime) {
+      return;
+    }
     try {
       setLoading(true);
 
@@ -80,7 +83,10 @@ const HourlyReport = () => {
   };
 
   const fetchHourlyModelCount = async () => {
-    if (!stationCode || !startTime || !endTime) return;
+    if (!stationCode || !startTime || !endTime) {
+      toast.error("Please select Station Code and Time Range.");
+      return;
+    }
     try {
       setLoading(true);
       const params = {

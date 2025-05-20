@@ -6,6 +6,7 @@ import DateTimePicker from "../../components/common/DateTimePicker";
 import { useEffect } from "react";
 import axios from "axios";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -35,7 +36,10 @@ const TotalProduction = () => {
   }, []);
 
   const fetchTotalProductionData = async () => {
-    if (!startTime || !endTime) return;
+    if (!startTime || !endTime) {
+      toast.error("Please select Time Range.");
+      return;
+    }
 
     try {
       setLoading(true);

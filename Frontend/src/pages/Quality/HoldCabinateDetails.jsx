@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
 import Loader from "../../components/common/Loader";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,7 +37,7 @@ const HoldCabinateDetails = () => {
 
   const fetchHoldCabietDetails = async () => {
     if (!startTime || !endTime || !state) {
-      alert("Please select both start and end time and state");
+      toast.error("Please select State and Time Range.");
       return;
     }
 

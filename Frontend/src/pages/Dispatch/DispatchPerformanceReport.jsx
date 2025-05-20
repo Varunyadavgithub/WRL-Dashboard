@@ -5,6 +5,7 @@ import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -18,7 +19,7 @@ const DispatchPerformanceReport = () => {
 
   const handleQuery = async () => {
     if (!startTime || !endTime) {
-      alert("Please select both Start Time and End Time.");
+      toast.error("Please select Time Range.");
       return;
     }
     setLoading(true);
@@ -62,7 +63,7 @@ const DispatchPerformanceReport = () => {
         console.log(summRes);
         setDispatchSummaryData(summRes.data);
       } else {
-        alert("Please select the Report Type.");
+        toast.error("Please select the Report Type.");
         return;
       }
     } catch (error) {

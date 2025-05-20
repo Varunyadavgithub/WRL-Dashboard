@@ -6,6 +6,8 @@ import SelectField from "../../components/common/SelectField";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -21,6 +23,7 @@ const FPA = () => {
   ];
   const [loading, setLoading] = useState(false);
   const [barcodeNumber, setBarcodeNumber] = useState(null);
+  const [remark, setRemark] = useState("");
   const [country, setCountry] = useState("");
   const [shift, setShift] = useState(Shift[0]);
   const [startTime, setStartTime] = useState("");
@@ -32,10 +35,11 @@ const FPA = () => {
   const [manualCategory, setManualCategory] = useState("");
   const [fpaCountData, setFpaDataCount] = useState([]);
   const [assetDetails, setAssetDetails] = useState([]);
+  const [fpqiDetails, setFpqiDetails] = useState([]);
 
   const handleFPACountQuery = async () => {
     if (!startTime || !endTime) {
-      alert("Please select both start and end time");
+      toast.error("Please select Time Range.");
       return;
     }
 
@@ -57,7 +61,7 @@ const FPA = () => {
 
   const getAssetDetails = async () => {
     if (!barcodeNumber) {
-      alert("Please select Barcode Number");
+      toast.error("Please select Barcode Number");
       return;
     }
 
@@ -79,6 +83,19 @@ const FPA = () => {
     }
   };
 
+  const getFPQIDetails = async () => {
+    try {
+      const res = await axios.get(`${baseURL}quality/fpqi-details`);
+      console.log(res);
+      setFpqiDetails(res?.data);
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getFPQIDetails();
+  }, []);
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
       <Title title="FPA" align="center" />
@@ -87,14 +104,14 @@ const FPA = () => {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Card */}
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Barcode & Search */}
-            <div className="flex flex-col gap-4 items-start justify-center">
+            <div className="flex flex-col gap-4 items-start">
               <InputField
                 label="Scan Barcode"
                 type="text"
                 placeholder="Enter Barcode Number"
-                className="w-64"
+                className="w-56"
                 name="barcodeNumber"
                 value={barcodeNumber}
                 onChange={(e) => setBarcodeNumber(e.target.value)}
@@ -113,52 +130,56 @@ const FPA = () => {
             </div>
 
             {/* Info Section */}
-            <div className="flex flex-col gap-3 justify-center text-center">
-              <h1 className="font-bold text-lg">
-                FG No:
-                <span className="text-blue-700">{assetDetails.FGNo || 0}</span>
+            <div className="flex flex-col gap-3">
+              <h1 className="font-semibold text-md">
+                FG No:{" "}
+                <span className="text-blue-700 text-sm">{assetDetails.FGNo || 0}</span>
               </h1>
-              <h1 className="font-bold text-lg">
-                Asset No:
-                <span className="text-blue-700">
+              <h1 className="font-semibold text-md">
+                Asset No:{" "}
+                <span className="text-blue-700 text-sm">
                   {assetDetails.AssetNo || 0}
                 </span>
               </h1>
-              <h1 className="font-bold text-lg">
-                Model Name:
-                <span className="text-blue-700">
+              <h1 className="font-semibold text-md">
+                Model Name:{" "}
+                <span className="text-blue-700 text-sm">
                   {assetDetails.ModelName || 0}
                 </span>
               </h1>
             </div>
+          </div>
+        </div>
 
-            {/* Country & Shift */}
-            <div className="flex flex-col gap-4 items-start justify-center">
-              <h1 className="font-bold text-lg">
-                No of Sample Inspected: <span className="text-blue-700">0</span>
-              </h1>
-              <InputField
-                label="Country"
-                type="text"
-                placeholder="Enter Country"
-                className="max-w-65"
-                name="Country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              />
-              <SelectField
-                label="Shift"
-                options={Shift}
-                value={shift.value}
-                onChange={(e) => {
-                  const selected = Shift.find(
-                    (item) => item.value === e.target.value
-                  );
-                  setShift(selected);
-                }}
-                className="max-w-65"
-              />
-            </div>
+        <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md w-full lg:max-w-xs flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col gap-4 items-start justify-center">
+            <h1 className="font-semibold text-md">
+              No of Sample Inspected:{" "}
+              <span className="text-blue-700 text-sm">
+                {fpqiDetails.TotalFGSRNo || "0"}
+              </span>
+            </h1>
+            <InputField
+              label="Country"
+              type="text"
+              placeholder="Enter Country"
+              className="max-w-65"
+              name="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+            <SelectField
+              label="Shift"
+              options={Shift}
+              value={shift.value}
+              onChange={(e) => {
+                const selected = Shift.find(
+                  (item) => item.value === e.target.value
+                );
+                setShift(selected);
+              }}
+              className="max-w-65"
+            />
           </div>
         </div>
 
@@ -167,19 +188,31 @@ const FPA = () => {
           <h1 className="font-bold text-2xl">FPQI</h1>
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-2">
-              <h1 className="font-semibold text-lg">
-                No. of Criticals: <span className="text-blue-700">0</span>
+              <h1 className="font-semibold text-md">
+                No. of Criticals:{" "}
+                <span className="text-blue-700 text-sm">
+                  {fpqiDetails.NoOfCritical || "0"}
+                </span>
               </h1>
-              <h1 className="font-semibold text-lg">
-                No. of Majors: <span className="text-blue-700">0</span>
+              <h1 className="font-semibold text-md">
+                No. of Majors:{" "}
+                <span className="text-blue-700 text-sm">
+                  {fpqiDetails.NoOfMajor || "0"}
+                </span>
               </h1>
-              <h1 className="font-semibold text-lg">
-                No. of Miniors: <span className="text-blue-700">0</span>
+              <h1 className="font-semibold text-md">
+                No. of Miniors:{" "}
+                <span className="text-blue-700 text-sm">
+                  {fpqiDetails.NoOfMinor || "0"}
+                </span>
               </h1>
             </div>
             <div className="text-center">
               <h1 className="font-semibold text-lg">
-                FPQI Value: <span className="text-green-700">3.375</span>
+                FPQI Value:{" "}
+                <span className="text-green-700">
+                  {fpqiDetails.FPQI || "0"}
+                </span>
               </h1>
             </div>
           </div>
@@ -249,9 +282,9 @@ const FPA = () => {
                   type="text"
                   placeholder="Enter Remark"
                   className="w-64"
-                  name="barcodeNumber"
-                  value={barcodeNumber}
-                  onChange={(e) => setBarcodeNumber(e.target.value)}
+                  name="remark"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
                 />
 
                 <Button

@@ -6,6 +6,7 @@ import DateTimePicker from "../../components/common/DateTimePicker";
 import axios from "axios";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -31,7 +32,10 @@ const ComponentTraceabilityReport = () => {
   };
 
   const fetchTraceabilityData = async () => {
-    if (!startTime || !endTime) return;
+    if (!startTime || !endTime) {
+      toast.error("Please select Time Range.");
+      return;
+    }
     try {
       setLoading(true);
 

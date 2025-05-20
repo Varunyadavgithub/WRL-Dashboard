@@ -6,6 +6,7 @@ import { useState } from "react";
 import ExportButton from "../../components/common/ExportButton";
 import Loader from "../../components/common/Loader";
 import axios from "axios";
+import toast from "react-hot-toast";
 // import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -31,7 +32,10 @@ const DispatchReport = () => {
   const [fgUnloadingData, setFgUnloadingData] = useState([]);
 
   const fetchFgUnloadingData = async () => {
-    if (!startTime || !endTime) return;
+    if (!startTime || !endTime) {
+      toast.error("Please select Time Range.");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.get(`${baseURL}dispatch/fg-unloading`, {
@@ -52,7 +56,6 @@ const DispatchReport = () => {
       fetchFgUnloadingData();
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -120,7 +123,10 @@ const DispatchReport = () => {
                 <ExportButton />
               </div>
               <div className="text-left font-bold text-lg">
-                COUNT: <span className="text-blue-700">{fgUnloadingData && fgUnloadingData.length || 0}</span>
+                COUNT:{" "}
+                <span className="text-blue-700">
+                  {(fgUnloadingData && fgUnloadingData.length) || 0}
+                </span>
               </div>
             </div>
           </div>

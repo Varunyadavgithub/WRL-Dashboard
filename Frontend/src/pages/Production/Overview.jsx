@@ -7,6 +7,7 @@ import axios from "axios";
 import DateTimePicker from "../../components/common/DateTimePicker";
 import Loader from "../../components/common/Loader";
 import ExportButton from "../../components/common/ExportButton";
+import toast from "react-hot-toast";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,9 +59,9 @@ const Overview = () => {
 
         // Add model to params only if a variant is selected
         if (selectedVariant) {
-          params.model = parseInt(selectedVariant.value, 10); // Convert to integer
+          params.model = parseInt(selectedVariant.value, 10);
         } else {
-          params.model = 0; // Explicitly send 0 if no model is selected
+          params.model = 0;
         }
 
         console.log("Params being sent:", params);
@@ -74,7 +75,7 @@ const Overview = () => {
         setLoading(false);
       }
     } else {
-      console.warn("Please select stage and time range");
+      toast.error("Please select Stage and Time Range.");
     }
   };
 
@@ -123,7 +124,7 @@ const Overview = () => {
               setSelectedStage(
                 stages.find((opt) => opt.value === e.target.value) || 0
               )
-            } 
+            }
             className="max-w-64"
           />
         </div>
