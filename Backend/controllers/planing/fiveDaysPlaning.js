@@ -6,7 +6,9 @@ const uploadDir = path.resolve("uploads");
 // Upload file controller
 export const uploadFile = (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ success: false, message: "No file uploaded" });
+    return res
+      .status(400)
+      .json({ success: false, message: "No file uploaded" });
   }
 
   return res.status(200).json({
@@ -30,4 +32,23 @@ export const getFiles = (req, res) => {
     console.error("Error reading files:", error.message);
     res.status(500).json({ success: false, message: "Error reading files" });
   }
+};
+
+// Download file controller
+export const downloadFile = (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(uploadDir, filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ success: false, message: "File not found" });
+  }
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.error("Download error:", err.message);
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to download file" });
+    }
+  });
 };

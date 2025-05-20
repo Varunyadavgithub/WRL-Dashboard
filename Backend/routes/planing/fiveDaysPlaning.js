@@ -3,13 +3,13 @@ import { upload } from "../../middlewares/uploadMiddleware.js";
 import {
   uploadFile,
   getFiles,
+  downloadFile,
 } from "../../controllers/planing/fiveDaysPlaning.js";
 
 const router = express.Router();
 
-// Handle file upload
 router.post("/upload", upload.single("file"), uploadFile);
-// Fetch list of uploaded files
 router.get("/files", getFiles);
+router.get("/download/:filename", downloadFile);
 
 export default router;

@@ -4,9 +4,12 @@ import dotenv from "dotenv";
 dotenv.config();
 import path from "path";
 import { connectToDB, dbConfig1, dbConfig2, dbConfig3 } from "./config/db.js";
+import cookieParser from "cookie-parser";
 // const _dirname = path.resolve();
 
 // <------------------------------------------------------------- All API Routes ------------------------------------------------------------->
+// <----- Auth Routes ----->
+import authRoutes from "./routes/auth.js";
 // <----- Shared Routes ----->
 import sharedRoutes from "./routes/sharedRoutes.js";
 
@@ -38,11 +41,12 @@ import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
 const app = express();
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
 
 // <------------------------------------------------------------- Connect to DB Servers ------------------------------------------------------------->
@@ -60,6 +64,8 @@ app.use("/uploads", express.static(path.resolve("uploads"))); // Static files
 // });
 
 // <------------------------------------------------------------- APIs ------------------------------------------------------------->
+// Auth API
+app.use("/api/v1/auth", authRoutes);
 // Shared API
 app.use("/api/v1/shared", sharedRoutes);
 

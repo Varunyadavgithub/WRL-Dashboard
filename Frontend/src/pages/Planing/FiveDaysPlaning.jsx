@@ -3,6 +3,7 @@ import axios from "axios";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
+import Button from "../../components/common/Button";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,7 +11,6 @@ const FiveDaysPlanning = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch files on mount
   useEffect(() => {
     fetchFilesFromServer();
   }, []);
@@ -24,7 +24,6 @@ const FiveDaysPlanning = () => {
     }
   };
 
-  // Upload file to backend
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -47,21 +46,49 @@ const FiveDaysPlanning = () => {
 
       toast.success("File uploaded successfully");
     } catch (error) {
-      console.error("Upload failed", error);
+      console.error("File upload failed", error);
       toast.error("File upload failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // Preview file in Google Docs Viewer
-  const previewFile = (file) => {
+  const handlePreviewFile = (file) => {
     const fileUrl = encodeURIComponent(`http://localhost:3000${file.url}`);
-    console.log(file.url);
     window.open(
       `https://docs.google.com/gview?url=${fileUrl}&embedded=true`,
       "_blank"
     );
+  };
+
+  const handleDownloadFile = async (file) => {
+    try {
+      setLoading(true);
+      const filename = file.url.split("/").pop();
+
+      const res = await axios.get(`${baseURL}planing/download/${filename}`, {
+        responseType: "blob", // important for binary files
+      });
+
+      // Create a blob URL
+      const blob = new Blob([res.data]);
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      // Create and click a temporary anchor element
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", file.filename); // set correct filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("File downloaded successfully");
+    } catch (error) {
+      console.error("File download failed", error);
+      toast.error("File download failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,35 +104,49 @@ const FiveDaysPlanning = () => {
           type="file"
           accept=".xlsx, .xls"
           onChange={handleFileUpload}
-          className="border p-2 rounded bg-white"
+          className="border p-2 rounded bg-white shadow"
         />
         {loading && <Loader />}
       </div>
 
       {/* Files List */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        <h3 className="text-xl font-bold mb-2 text-center">
+        <h3 className="text-xl font-bold mb-4 text-center text-purple-900">
           Available Excel Files
         </h3>
+
         {files.length > 0 ? (
-          <ul className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {files.map((file) => (
-              <li
+              <div
                 key={file.id}
-                className="flex items-center justify-between border-b py-2"
+                className="bg-white rounded-lg shadow-md p-4 border border-purple-300"
               >
-                <span>{file.filename}</span>
-                <button
-                  onClick={() => previewFile(file)}
-                  className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 cursor-pointer"
-                >
-                  Preview
-                </button>
-              </li>
+                <h4 className="font-semibold text-gray-800 truncate">
+                  {file.filename}
+                </h4>
+
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    onClick={() => handlePreviewFile(file)}
+                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+                  >
+                    Preview
+                  </Button>
+                  <Button
+                    onClick={() => handleDownloadFile(file)}
+                    className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
+                  >
+                    Download
+                  </Button>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>No files uploaded yet.</p>
+          <p className="text-center text-gray-600 text-lg">
+            No files uploaded yet.
+          </p>
         )}
       </div>
     </div>

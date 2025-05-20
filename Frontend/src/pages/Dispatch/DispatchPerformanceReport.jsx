@@ -79,11 +79,11 @@ const DispatchPerformanceReport = () => {
   }, [dispatchType]);
 
   const handleClearFilters = () => {
-    setSelectedVariant(null);
-    setSelectedStage(null);
     setStartTime("");
     setEndTime("");
-    setProductionData([]);
+    setDispatchType("vehicleUph");
+    setDispatchData([]);
+    setDispatchSummaryData([]);
   };
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">

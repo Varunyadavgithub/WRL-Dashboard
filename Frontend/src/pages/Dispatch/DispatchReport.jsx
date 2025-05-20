@@ -30,6 +30,7 @@ const DispatchReport = () => {
   );
   const [status, setStatus] = useState(Status[0]);
   const [fgUnloadingData, setFgUnloadingData] = useState([]);
+  const [fgDispatchData, setFgDispatchData] = useState([]);
 
   const fetchFgUnloadingData = async () => {
     if (!startTime || !endTime) {
@@ -51,12 +52,38 @@ const DispatchReport = () => {
     }
   };
 
-  const handleQuery = () => {
-    if (selectedStage.value === "fgunloading") {
-      fetchFgUnloadingData();
+  const fetchFgDispatchData = async () => {
+    if (!startTime || !endTime || !status) {
+      toast.error("Please select Time Range and Status.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await axios.get(`${baseURL}dispatch/fg-dispatch`, {
+        params: {
+          startDate: startTime,
+          endDate: endTime,
+          status: status.value,
+        },
+      });
+      const data = res.data;
+      console.log(data);
+      setFgDispatchData(data);
+    } catch (error) {
+      console.error("Failed to fetch fetch Fg Casting data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleQuery = () => {
+    if (selectedStage.value === "fgunloading") {
+      fetchFgUnloadingData();
+    } else if (selectedStage.value === "fgdispatch") {
+      fetchFgDispatchData();
+    }
+  };
+  console.log(selectedStage);
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Title title="Dispatch Report" align="center" />
@@ -125,7 +152,11 @@ const DispatchReport = () => {
               <div className="text-left font-bold text-lg">
                 COUNT:{" "}
                 <span className="text-blue-700">
-                  {(fgUnloadingData && fgUnloadingData.length) || 0}
+                  {selectedStage.value === "fgunloading"
+                    ? fgUnloadingData?.length ?? 0
+                    : selectedStage.value === "fgdispatch"
+                    ? fgDispatchData?.length ?? 0
+                    : 0}
                 </span>
               </div>
             </div>
@@ -140,57 +171,15 @@ const DispatchReport = () => {
             {loading ? (
               <Loader />
             ) : (
-              <div className="w-full max-h-[600px] overflow-x-auto">
-                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                  <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                    <tr>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Model Name
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        FG Serial No.
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Asset Code
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Batch Code
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Scanner No.
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Date Time
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fgUnloadingData && fgUnloadingData.length > 0 ? (
-                      fgUnloadingData.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-100">
-                          <td className="px-1 py-1 border">{item.ModelName}</td>
-                          <td className="px-1 py-1 border">
-                            {item.FGSerialNo}
-                          </td>
-                          <td className="px-1 py-1 border">{item.AssetCode}</td>
-                          <td className="px-1 py-1 border">{item.BatchCode}</td>
-                          <td className="px-1 py-1 border">{item.ScannerNo}</td>
-                          <td className="px-1 py-1 border">
-                            {item.DateTime &&
-                              item.DateTime.replace("T", " ").replace("Z", "")}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={3} className="text-center py-4">
-                          No data found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {selectedStage.value === "fgunloading" && (
+                  <FgUnloadingTable data={fgUnloadingData} />
+                )}
+
+                {selectedStage.value === "fgdispatch" && (
+                  <FgDispatchTable data={fgDispatchData} />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -199,4 +188,96 @@ const DispatchReport = () => {
   );
 };
 
+const FgUnloadingTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Model Name</th>
+            <th className="px-1 py-1 border min-w-[120px]">FG Serial No.</th>
+            <th className="px-1 py-1 border min-w-[120px]">Asset Code</th>
+            <th className="px-1 py-1 border min-w-[120px]">Batch Code</th>
+            <th className="px-1 py-1 border min-w-[120px]">Scanner No.</th>
+            <th className="px-1 py-1 border min-w-[120px]">Date Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.ModelName}</td>
+                <td className="px-1 py-1 border">{row.FGSerialNo}</td>
+                <td className="px-1 py-1 border">{row.AssetCode}</td>
+                <td className="px-1 py-1 border">{row.BatchCode}</td>
+                <td className="px-1 py-1 border">{row.ScannerNo}</td>
+                <td className="px-1 py-1 border">
+                  {row.DateTime &&
+                    row.DateTime.replace("T", " ").replace("Z", "")}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={3} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const FgDispatchTable = ({ data }) => {
+  return (
+    <div className="w-full max-h-[600px] overflow-x-auto">
+      <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+        <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+          <tr>
+            <th className="px-1 py-1 border min-w-[120px]">Model Name</th>
+            <th className="px-1 py-1 border min-w-[120px]">FG Serial No.</th>
+            <th className="px-1 py-1 border min-w-[120px]">Asset Code</th>
+            <th className="px-1 py-1 border min-w-[120px]">Session ID</th>
+            <th className="px-1 py-1 border min-w-[120px]">Added On</th>
+            <th className="px-1 py-1 border min-w-[120px]">Added By</th>
+            <th className="px-1 py-1 border min-w-[120px]">Document ID</th>
+            <th className="px-1 py-1 border min-w-[120px]">Model Code</th>
+            <th className="px-1 py-1 border min-w-[120px]">Dock No</th>
+            <th className="px-1 py-1 border min-w-[120px]">Vehicle No</th>
+            <th className="px-1 py-1 border min-w-[120px]">Generated By</th>
+            <th className="px-1 py-1 border min-w-[120px]">Scan ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data && data.length > 0 ? (
+            data.map((row, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-1 py-1 border">{row.ModelName}</td>
+                <td className="px-1 py-1 border">{row.FGSerialNo}</td>
+                <td className="px-1 py-1 border">{row.AssetCode}</td>
+                <td className="px-1 py-1 border">{row.Session_ID}</td>
+                <td className="px-1 py-1 border">{row.AddedOn}</td>
+                <td className="px-1 py-1 border">{row.AddedBy}</td>
+                <td className="px-1 py-1 border">{row.Document_ID}</td>
+                <td className="px-1 py-1 border">{row.ModelCode}</td>
+                <td className="px-1 py-1 border">{row.DockNo}</td>
+                <td className="px-1 py-1 border">{row.Vehicle_No}</td>
+                <td className="px-1 py-1 border">{row.Generated_By}</td>
+                <td className="px-1 py-1 border">{row.Scan_ID}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={12} className="text-center py-4">
+                No data found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 export default DispatchReport;

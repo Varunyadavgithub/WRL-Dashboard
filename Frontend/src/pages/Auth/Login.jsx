@@ -1,16 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
-import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setAuthUser } from "../../redux/authSlice.js";
 
-// import toast from "react-hot-toast";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    empcod: "",
     password: "",
   });
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,14 +29,30 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      // if () {
-      // } else {
-      //   toast.error(result.payload || "Login failed!");
-      // }
+      const res = await axios.post(
+        `${baseURL}auth/login`,
+        { empcod: formData.empcod, password: formData.password },
+        {
+          withCredentials: true,
+        }
+      );
+      if (res.data.success) {
+        dispatch(setAuthUser(res.data.user));
+        toast.success("Login successful");
+        navigate("/");
+      } else {
+        toast.error(res.data.message || "Login failed");
+      }
     } catch (err) {
-      // toast.error(err || "An unexpected error occurred!");
+      console.error("Login failed:", err);
+      toast.error(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,12 +66,12 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <InputField
-            label="Email"
-            type="email"
-            placeholder="Enter your email"
-            value={formData.email}
+            label="Employee Code"
+            type="text"
+            placeholder="Enter your employee code"
+            value={formData.empcod}
             onChange={handleChange}
-            name="email"
+            name="empcod"
             required
           />
 
@@ -61,17 +84,11 @@ const Login = () => {
             name="password"
             required
           />
+
           <Button type="submit" className="w-full mt-6" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
-
-        <p className="text-sm text-gray-600 mt-4 text-center">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-500 hover:underline">
-            Sign up here
-          </Link>
-        </p>
       </div>
     </div>
   );
