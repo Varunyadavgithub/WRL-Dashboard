@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setAuthUser } from "../../redux/authSlice.js";
+import { assets } from "../../assets/assets.js";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,37 +59,49 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow w-96">
-        <Title
-          title="Login"
-          subTitle="Access your dashboard based on your role"
-        />
-
-        <form onSubmit={handleSubmit}>
-          <InputField
-            label="Employee Code"
-            type="text"
-            placeholder="Enter your employee code"
-            value={formData.empcod}
-            onChange={handleChange}
-            name="empcod"
-            required
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-col items-center justify-center">
+          <img
+            src={assets.logo}
+            alt="Western Logo"
+            className="h-10 w-auto mr-3"
+          />
+          <h1 className="text-2xl font-bold text-blue-800 tracking-wide">
+            Western Refrigeration Pvt.Ltd
+          </h1>
+        </div>
+        <div className="bg-white p-8 rounded-lg shadow w-96">
+          <Title
+            title="Login"
+            subTitle="Access your dashboard based on your role"
           />
 
-          <InputField
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-            name="password"
-            required
-          />
+          <form onSubmit={handleSubmit} className="mt-2">
+            <InputField
+              label="Employee Code"
+              type="text"
+              placeholder="Enter your employee code"
+              value={formData.empcod}
+              onChange={handleChange}
+              name="empcod"
+              required
+            />
 
-          <Button type="submit" className="w-full mt-6" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </Button>
-        </form>
+            <InputField
+              label="Password"
+              type="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              name="password"
+              required
+            />
+
+            <Button type="submit" className="w-full mt-6" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
