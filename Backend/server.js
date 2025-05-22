@@ -27,6 +27,7 @@ import totalProductionRoutes from "./routes/production/totalProduction.js";
 // <----- Quality Routes ----->
 import fpaRoutes from "./routes/quality/fpa.js";
 import fpaReportRoutes from "./routes/quality/fpaReport.js";
+import dispatchHoldRoutes from "./routes/quality/dispatchHold.js";
 import holdCabinetDetailsRoutes from "./routes/quality/holdCabinetDetails.js";
 
 // <----- Dispatch Routes ----->
@@ -83,6 +84,7 @@ app.use("/api/v1/prod", totalProductionRoutes);
 // Quality API
 app.use("/api/v1/quality", fpaRoutes);
 app.use("/api/v1/quality", fpaReportRoutes);
+app.use("/api/v1/quality", dispatchHoldRoutes);
 app.use("/api/v1/quality", holdCabinetDetailsRoutes);
 
 // <----- Dispatch Routes ----->

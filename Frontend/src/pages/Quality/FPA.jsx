@@ -36,6 +36,7 @@ const FPA = () => {
   const [fpaCountData, setFpaDataCount] = useState([]);
   const [assetDetails, setAssetDetails] = useState([]);
   const [fpqiDetails, setFpqiDetails] = useState([]);
+  const [fpaDefect, setFpaDefect] = useState([]);
 
   const handleFPACountQuery = async () => {
     if (!startTime || !endTime) {
@@ -93,8 +94,18 @@ const FPA = () => {
     }
   };
 
+  const getFpaDefect = async () => {
+    try {
+      const res = await axios.get(`${baseURL}quality/fpa-defect`);
+      console.log(res);
+      setFpaDefect(res?.data);
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    }
+  };
   useEffect(() => {
     getFPQIDetails();
+    getFpaDefect();
   }, []);
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
@@ -133,7 +144,9 @@ const FPA = () => {
             <div className="flex flex-col gap-3">
               <h1 className="font-semibold text-md">
                 FG No:{" "}
-                <span className="text-blue-700 text-sm">{assetDetails.FGNo || 0}</span>
+                <span className="text-blue-700 text-sm">
+                  {assetDetails.FGNo || 0}
+                </span>
               </h1>
               <h1 className="font-semibold text-md">
                 Asset No:{" "}
@@ -153,9 +166,9 @@ const FPA = () => {
 
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md w-full lg:max-w-xs flex flex-col items-center justify-center gap-4">
           <div className="flex flex-col gap-4 items-start justify-center">
-            <h1 className="font-semibold text-md">
+            <h1 className="font-semibold text-xl">
               No of Sample Inspected:{" "}
-              <span className="text-blue-700 text-sm">
+              <span className="text-blue-700 text-md">
                 {fpqiDetails.TotalFGSRNo || "0"}
               </span>
             </h1>
@@ -211,7 +224,9 @@ const FPA = () => {
               <h1 className="font-semibold text-lg">
                 FPQI Value:{" "}
                 <span className="text-green-700">
-                  {fpqiDetails.FPQI || "0"}
+                  {fpqiDetails.FPQI
+                    ? Number(fpqiDetails.FPQI).toFixed(2)
+                    : "0.00"}{" "}
                 </span>
               </h1>
             </div>
@@ -319,16 +334,38 @@ const FPA = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="hover:bg-gray-100">
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                        <td className="px-1 py-1 border">N/A</td>
-                      </tr>
+                       {fpaDefect && fpaDefect.length > 0 ? (
+                        fpaDefect.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-100">
+                            <td className="px-1 py-1 border">
+                              {item.SRNo}
+                            </td>
+                            <td className="px-1 py-1 border">
+                              {item.Date}
+                            </td>
+                            <td className="px-1 py-1 border">{item.Model}</td>
+                            <td className="px-1 py-1 border">
+                              {item.Shift}
+                            </td>
+
+                            <td className="px-1 py-1 border">
+                              {item.FGSRNo}
+                            </td><td className="px-1 py-1 border">
+                              {item.Category}
+                            </td><td className="px-1 py-1 border">
+                              {item.AddDefect}
+                            </td><td className="px-1 py-1 border">
+                              {item.Remark}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={8} className="text-center py-4">
+                            No data found.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

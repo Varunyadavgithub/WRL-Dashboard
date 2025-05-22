@@ -24,49 +24,50 @@ WITH Psno AS (
 ),
 FilteredData AS (
     SELECT 
-        Psno.Material,
-        CASE WHEN Psno.VSerial IS NULL THEN Psno.Serial ELSE Psno.Alias END AS Assembly_Sr_No
-    FROM Psno
-    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+        ps.Material,
+        CASE WHEN ps.VSerial IS NULL THEN ps.Serial ELSE ps.Alias END AS Assembly_Sr_No
+    FROM Psno ps
+    JOIN ProcessActivity b ON b.PSNo = ps.DocNo
     JOIN WorkCenter c ON b.StationCode = c.StationCode
     WHERE b.ActivityType = 5
-      AND b.ActivityOn >= @AdjustedStartTime
-      AND b.ActivityOn <= @AdjustedEndTime
-      AND c.StationCode = @stationCode
+  AND b.ActivityOn >= @AdjustedStartTime
+  AND b.ActivityOn <= @AdjustedEndTime
+  AND c.StationCode = @stationCode
 ),
 ModelStats AS (
-    SELECT 
-        f.Material,
+    SELECT    
         MIN(f.Assembly_Sr_No) AS StartSerial,
         MAX(f.Assembly_Sr_No) AS EndSerial,
-        COUNT(*) AS TotalCount
+        COUNT(*) AS TotalCount,
+        f.Material
     FROM FilteredData f
     GROUP BY f.Material
 )
 SELECT 
     ROW_NUMBER() OVER (ORDER BY b.ActivityOn ASC) AS SrNo,
-    (SELECT Name FROM Material WHERE MatCode = Psno.Material) AS Model_Name,
-    Psno.Material AS ModelName,
+    (SELECT Name FROM Material WHERE MatCode = ps.Material) AS Model_Name,
+    ps.Material AS ModelName,
     b.StationCode,
     c.Name AS Station_Name,
-    CASE WHEN Psno.VSerial IS NULL THEN Psno.Serial ELSE Psno.Alias END AS Assembly_Sr_No,
-    ISNULL(Psno.VSerial, '') AS Asset_tag,
-    ISNULL(Psno.Serial2, '') AS [Customer_QR],
-    CASE WHEN SUBSTRING(Psno.Serial, 1, 1) IN ('S', 'F', 'L') THEN '' ELSE Psno.Serial END AS FG_SR,
+    CASE WHEN ps.VSerial IS NULL THEN ps.Serial ELSE ps.Alias END AS Assembly_Sr_No,
+    ISNULL(ps.VSerial, '') AS Asset_tag,
+    ISNULL(ps.Serial2, '') AS [Customer_QR],
+    CASE WHEN SUBSTRING(ps.Serial, 1, 1) IN ('S', 'F', 'L') THEN '' ELSE ps.Serial END AS FG_SR,
     b.ActivityOn AS CreatedOn,
     us.UserName,
     ms.StartSerial,
     ms.EndSerial,
     ms.TotalCount
-FROM Psno
-JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+FROM Psno ps
+JOIN ProcessActivity b ON b.PSNo = ps.DocNo
 JOIN WorkCenter c ON b.StationCode = c.StationCode
 JOIN Users us ON us.UserCode = b.Operator
-JOIN ModelStats ms ON ms.Material = Psno.Material
+JOIN ModelStats ms ON ms.Material = ps.Material
 WHERE b.ActivityType = 5
   AND b.ActivityOn >= @AdjustedStartTime
   AND b.ActivityOn <= @AdjustedEndTime
   AND c.StationCode = @stationCode
+
 `;
 
   if (model && model != 0) {

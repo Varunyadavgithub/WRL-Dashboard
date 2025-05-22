@@ -161,7 +161,7 @@ export const getFPQIDetails = async (req, res) => {
 
     const result = await pool
       .request()
-      .input("Date", sql.Date, today) 
+      .input("Date", sql.Date, today)
       .query(query);
 
     if (!result.recordset.length) {
@@ -180,5 +180,33 @@ export const getFPQIDetails = async (req, res) => {
   } catch (err) {
     console.error("SQL Error:", err.message);
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const getFpaDefect = async (req, res) => {
+  // Get current date in 'yyyy-MM-dd' to avoid SQL errors
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const reportDateStr = `${year}-${month}-${day}`;
+
+  const query = `
+    Select * from FPAReport where Date = @ReportDate
+  `;
+
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
+    const result = await pool
+      .request()
+
+      .input("ReportDate", sql.DateTime, new Date(reportDateStr))
+      .query(query);
+
+    res.json(result.recordset);
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 };

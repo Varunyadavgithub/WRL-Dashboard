@@ -19,7 +19,7 @@ export const login = async (req, res) => {
       .input("empcod", sql.VarChar, empcod)
       .input("password", sql.VarChar, password)
       .query(
-        "SELECT UserName, UserID, Password FROM Users WHERE UserID = @empcod AND Password = @password"
+        "SELECT UserCode, UserName, UserID, Password FROM Users WHERE UserID = @empcod AND Password = @password"
       );
     await pool.close();
 
@@ -37,6 +37,7 @@ export const login = async (req, res) => {
       {
         id: user.UserID,
         name: user.UserName,
+        usercode: user.UserCode,
         // role: user.Role || "User",
       },
       process.env.JWT_SECRET,
@@ -57,6 +58,7 @@ export const login = async (req, res) => {
       user: {
         id: user.UserID,
         name: user.UserName,
+        usercode: user.UserCode,
         // role: user.Role || "User",
       },
     });

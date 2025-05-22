@@ -1,50 +1,225 @@
 import axios from "axios";
 import SelectField from "../../components/common/SelectField";
 import Title from "../../components/common/Title";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
-import DateTimePicker from "../../components/common/DateTimePicker";
 import Loader from "../../components/common/Loader";
+import toast from "react-hot-toast";
+import ExcelJS from "exceljs";
+import { useSelector } from "react-redux";
+import { getFormattedISTDate } from "../../utils/dateUtils";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const DispatchHold = () => {
+  const { user } = useSelector((store) => store.auth);
+
   const Status = [
     { label: "Hold", value: "hold" },
     { label: "Release", value: "release" },
   ];
-  const Users = [
-    { label: "Varun", value: "varun" },
-    { label: "Abhinav", value: "abhinav" },
-    { label: "Vikash", value: "vikash" },
-    { label: "Rohit", value: "rohit" },
-    { label: "Aman", value: "aman" },
-  ];
 
   const [loading, setLoading] = useState(false);
-  const [variants, setVariants] = useState([]);
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [status, setStatus] = useState(Status[0]);
-  const [user, setUser] = useState(Users[0]);
-  const [startTime, setStartTime] = useState("");
+  const [status, setStatus] = useState([]);
+  const [assemblySerial, setAssemblySerial] = useState("");
+  const [assemblySerialFile, setAssemblySerialFile] = useState("");
+  const [modelName, setModelName] = useState("");
+  const [fgData, setFgData] = useState([]);
+  const [defectName, setDefectName] = useState("");
+  const [actionPlan, setActionPlan] = useState("");
 
-  const fetchModelVariants = async () => {
+  const handleAddFg = async () => {
+    if (!assemblySerial.trim()) {
+      toast.error("Please enter FG Serial Number");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await axios.get(`${baseURL}shared/model-variants`);
-      const formatted = res?.data.map((item) => ({
-        label: item.MaterialName,
-        value: item.MatCode.toString(),
-      }));
-      setVariants(formatted);
+      const params = { AssemblySerial: assemblySerial };
+      const res = await axios.get(`${baseURL}quality/model-name`, { params });
+
+      const fetchedModelName = res?.data?.combinedserial || "Not Found";
+
+      if (fetchedModelName === "Not Found") {
+        toast.error("Model Name not found for this serial number");
+        return;
+      }
+
+      setModelName(fetchedModelName);
+
+      // Wait a bit before adding to table so input shows the model name
+      setTimeout(() => {
+        setFgData((prev) => [
+          ...prev,
+          {
+            modelName: fetchedModelName,
+            assemblySerial,
+          },
+        ]);
+
+        // Clear fields after adding
+        setAssemblySerial("");
+      }, 500); // half-second delay to let it render
     } catch (error) {
-      console.error("Failed to fetch variants:", error);
+      console.error("Failed to fetch model name:", error);
+      toast.error("Error fetching model name");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchModelVariants();
-  }, []);
+  const handleUpload = async () => {
+    if (!assemblySerialFile) {
+      toast.error("Please upload a valid Excel file.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const buffer = e.target.result;
+        await workbook.xlsx.load(buffer);
+
+        const worksheet = workbook.worksheets[0]; // Assuming data is in the first sheet
+
+        const newFgData = [];
+
+        worksheet.eachRow((row, rowNumber) => {
+          const modelName = row.getCell(1).value?.toString().trim(); // Column A
+          const assemblySerial = row.getCell(2).value?.toString().trim(); // Column B
+
+          if (modelName && assemblySerial) {
+            newFgData.push({ modelName, assemblySerial });
+          }
+        });
+
+        if (newFgData.length === 0) {
+          toast.error("No valid data found in the file.");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Excel File uploaded Data:", newFgData);
+        setFgData((prev) => [...prev, ...newFgData]);
+        toast.success("FG Serial Numbers uploaded successfully.");
+      };
+
+      reader.readAsArrayBuffer(assemblySerialFile);
+    } catch (err) {
+      console.error("Error processing Excel file:", err);
+      toast.error("Failed to process the Excel file.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHold = async () => {
+    if (!status || status.value !== "hold") {
+      toast.error("Please select status as 'Hold'");
+      return;
+    }
+
+    if (!defectName.trim()) {
+      toast.error("Please enter Defect Name");
+      return;
+    }
+
+    if (fgData.length === 0) {
+      toast.error("No FG data to hold");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = fgData.map((item) => ({
+        modelName: item.modelName,
+        fgNo: item.assemblySerial,
+        userName: user.usercode || "defaultUser",
+        dispatchStatus: status.value,
+        defect: defectName,
+        formattedDate: getFormattedISTDate(),
+      }));
+
+      console.log("Hold payload:", payload);
+
+      const res = await axios.post(`${baseURL}quality/hold`, payload);
+      console.log(res);
+      // toast.success(res?.data?.message || "Hold request successful");
+      alert(res?.data?.message || "Hold request successful");
+
+      // Reset fields
+      setFgData([]);
+      setDefectName("");
+    } catch (err) {
+      console.error("Hold API error:", err);
+      toast.error("Failed to submit hold request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRelease = async () => {
+    if (!status || status.value !== "release") {
+      toast.error("Please select status as 'Release'");
+      return;
+    }
+
+    if (!actionPlan.trim()) {
+      toast.error("Please enter Action Plan");
+      return;
+    }
+
+    if (fgData.length === 0) {
+      toast.error("No FG data to release");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = fgData.map((item) => ({
+        fgNo: item.assemblySerial,
+        releaseUserCode: user.usercode || "defaultUser",
+        dispatchStatus: status.value,
+        action: actionPlan,
+        formattedDate: getFormattedISTDate(),
+      }));
+
+      console.log("Release payload:", payload);
+      // Send batch release request
+      const res = await axios.post(`${baseURL}quality/release`, payload);
+
+      toast.success(res?.data?.message || "Release request successful");
+
+      // Clear state after success
+      setFgData([]);
+      setActionPlan("");
+    } catch (err) {
+      console.error("Release API error:", err);
+      toast.error("Failed to submit release request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  console.log("Total Data:", fgData);
+
+  const handleClearFilters = () => {
+    setAssemblySerialFile(""),
+      setModelName(""),
+      setFgData([]),
+      setDefectName(""),
+      setActionPlan("");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
       <Title title="Dispatch Hold" align="center" />
@@ -58,16 +233,17 @@ const DispatchHold = () => {
               type="text"
               placeholder="Enter FG Serial No."
               className="w-full"
+              name="assemblySerial"
+              value={assemblySerial}
+              onChange={(e) => setAssemblySerial(e.target.value)}
             />
-            <SelectField
+            <InputField
               label="Model Name"
-              options={variants}
-              value={selectedVariant?.value || ""}
-              onChange={(e) =>
-                setSelectedVariant(
-                  variants.find((opt) => opt.value === e.target.value) || 0
-                )
-              }
+              type="text"
+              placeholder="Model Name"
+              className="w-full"
+              value={modelName}
+              readOnly
             />
             <SelectField
               label="Status"
@@ -81,30 +257,104 @@ const DispatchHold = () => {
               }}
               className="max-w-65"
             />
+
+            {status.value === "hold" && (
+              <InputField
+                label="Defect Name"
+                type="text"
+                placeholder="Enter Defect Name"
+                className="w-full"
+                value={defectName}
+                onChange={(e) => setDefectName(e.target.value)}
+              />
+            )}
+            {status.value === "release" && (
+              <InputField
+                label="Action Plan"
+                type="text"
+                placeholder="Enter Action Plan"
+                className="w-full"
+                value={actionPlan}
+                onChange={(e) => setActionPlan(e.target.value)}
+              />
+            )}
             <div className="flex items-center justify-center gap-2">
-              <Button
-                bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
-                textColor={loading ? "text-white" : "text-black"}
-                className={`font-semibold ${
-                  loading ? "cursor-not-allowed" : ""
-                }`}
-                onClick={console.log("Upload btn clicked")}
-                disabled={loading}
-              >
-                Upload
-              </Button>
               <Button
                 bgColor={loading ? "bg-gray-400" : "bg-green-500"}
                 textColor={loading ? "text-white" : "text-black"}
                 className={`font-semibold ${
                   loading ? "cursor-not-allowed" : ""
                 }`}
-                onClick={console.log("Add FG btn clicked")}
+                onClick={handleAddFg}
                 disabled={loading}
               >
                 Add FG
               </Button>
+              {status.value === "hold" && (
+                <Button
+                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+                  textColor={loading ? "text-white" : "text-black"}
+                  className={`font-semibold ${
+                    loading ? "cursor-not-allowed" : ""
+                  }`}
+                  onClick={handleHold}
+                  disabled={loading}
+                >
+                  Hold
+                </Button>
+              )}
+              {status.value === "release" && (
+                <Button
+                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+                  textColor={loading ? "text-white" : "text-black"}
+                  className={`font-semibold ${
+                    loading ? "cursor-not-allowed" : ""
+                  }`}
+                  onClick={handleRelease}
+                  disabled={loading}
+                >
+                  Release
+                </Button>
+              )}
             </div>
+          </div>
+        </div>
+        <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
+          <div className="flex flex-wrap gap-2">
+            <InputField
+              label="FG Serial No. File"
+              type="file"
+              className="w-52"
+              name="assemblySerialFile"
+              onChange={(e) => setAssemblySerialFile(e.target.files[0])}
+            />
+
+            <div className="flex items-center justify-center">
+              <Button
+                bgColor={loading ? "bg-gray-400" : "bg-green-500"}
+                textColor={loading ? "text-white" : "text-black"}
+                className={`font-semibold ${
+                  loading ? "cursor-not-allowed" : ""
+                }`}
+                onClick={handleUpload}
+                disabled={loading}
+              >
+                Upload FG
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4 text-left font-bold text-lg">
+            COUNT: <span className="text-blue-700">{fgData?.length || 0}</span>
+          </div>
+          <div>
+            <Button
+              bgColor="bg-white"
+              textColor="text-black"
+              className="border border-gray-400 hover:bg-gray-100 px-3 py-1"
+              onClick={handleClearFilters}
+            >
+              Clear Filter
+            </Button>
           </div>
         </div>
       </div>
@@ -112,55 +362,47 @@ const DispatchHold = () => {
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="bg-white border border-gray-300 rounded-md p-2">
-          {/* Right Side - Controls and Summary */}
           <div className="w-full  flex flex-col gap-2 overflow-x-hidden">
             {/* Summary Table */}
             <div className="w-full max-h-[500px] overflow-x-auto">
               {loading ? (
                 <Loader />
               ) : (
-                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <table className="min-w-2xl border bg-white text-xs text-left rounded-lg table-auto">
                   <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                     <tr>
+                      <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
+                        Sr No.
+                      </th>
                       <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
                         Model_Name
                       </th>
                       <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                        StartSerial
-                      </th>
-                      <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                        EndSerial
-                      </th>
-                      <th className="px-1 py-1 border min-w-[80px] md:min-w-[100px]">
-                        Count
+                        FG Serial No.
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {/* {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.StartSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.EndSerial}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.TotalCount}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="text-center py-4">
-                            No data found.
+                    {fgData.length > 0 ? (
+                      fgData.map((item, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 text-center"
+                        >
+                          <td className="px-1 py-1 border">{index + 1}</td>
+                          <td className="px-1 py-1 border">{item.modelName}</td>
+                          <td className="px-1 py-1 border">
+                            {item.assemblySerial}
                           </td>
                         </tr>
-                      )} */}
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="text-center py-4">
+                          No data found.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               )}
