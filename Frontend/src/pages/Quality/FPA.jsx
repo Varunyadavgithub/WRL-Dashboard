@@ -16,43 +16,26 @@ const FPA = () => {
     { label: "Morning Shift", value: "shift 1" },
     { label: "Night Shift", value: "shift 2" },
   ];
-  const defectCategories = [
-    { label: "Crack", value: "crack" },
-    { label: "Dent", value: "dent" },
-    { label: "Scratch", value: "scratch" },
-  ];
   const [loading, setLoading] = useState(false);
   const [barcodeNumber, setBarcodeNumber] = useState(null);
   const [remark, setRemark] = useState("");
   const [country, setCountry] = useState("");
   const [shift, setShift] = useState(Shift[0]);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [addManually, setAddManually] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(
-    defectCategories[0].value
-  );
+  const [fpaDefectCategory, setFpaDefectCategory] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [manualCategory, setManualCategory] = useState("");
-  const [fpaCountData, setFpaDataCount] = useState([]);
+  const [fpaCountData, setFpaCountData] = useState([]);
   const [assetDetails, setAssetDetails] = useState([]);
   const [fpqiDetails, setFpqiDetails] = useState([]);
   const [fpaDefect, setFpaDefect] = useState([]);
 
-  const handleFPACountQuery = async () => {
-    if (!startTime || !endTime) {
-      toast.error("Please select Time Range.");
-      return;
-    }
-
+  const getFPACountData = async () => {
     try {
       setLoading(true);
-      const params = {
-        startDate: startTime,
-        endDate: endTime,
-      };
 
-      const res = await axios.get(`${baseURL}quality/fpa-count`, { params });
-      setFpaDataCount(res?.data);
+      const res = await axios.get(`${baseURL}quality/fpa-count`);
+      setFpaCountData(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -103,9 +86,25 @@ const FPA = () => {
       console.error("Failed to fetch production data:", error);
     }
   };
+
+  const getFpaDefectCategory = async () => {
+    try {
+      const res = await axios.get(`${baseURL}quality/fpa-defect-category`);
+      const formatted = res?.data.map((item) => ({
+        label: item.Name,
+        value: item.Code.toString(),
+      }));
+      setFpaDefectCategory(formatted);
+    } catch (error) {
+      console.error("Failed to fetch production data:", error);
+    }
+  };
+
   useEffect(() => {
     getFPQIDetails();
     getFpaDefect();
+    getFPACountData();
+    getFpaDefectCategory();
   }, []);
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
@@ -285,7 +284,7 @@ const FPA = () => {
                   ) : (
                     <SelectField
                       label="Select Defect Category"
-                      options={defectCategories}
+                      options={fpaDefectCategory}
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
                     />
@@ -334,29 +333,22 @@ const FPA = () => {
                       </tr>
                     </thead>
                     <tbody>
-                       {fpaDefect && fpaDefect.length > 0 ? (
+                      {fpaDefect && fpaDefect.length > 0 ? (
                         fpaDefect.map((item, index) => (
                           <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-1 py-1 border">
-                              {item.SRNo}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Date}
-                            </td>
+                            <td className="px-1 py-1 border">{item.SRNo}</td>
+                            <td className="px-1 py-1 border">{item.Date}</td>
                             <td className="px-1 py-1 border">{item.Model}</td>
-                            <td className="px-1 py-1 border">
-                              {item.Shift}
-                            </td>
+                            <td className="px-1 py-1 border">{item.Shift}</td>
 
+                            <td className="px-1 py-1 border">{item.FGSRNo}</td>
                             <td className="px-1 py-1 border">
-                              {item.FGSRNo}
-                            </td><td className="px-1 py-1 border">
                               {item.Category}
-                            </td><td className="px-1 py-1 border">
-                              {item.AddDefect}
-                            </td><td className="px-1 py-1 border">
-                              {item.Remark}
                             </td>
+                            <td className="px-1 py-1 border">
+                              {item.AddDefect}
+                            </td>
+                            <td className="px-1 py-1 border">{item.Remark}</td>
                           </tr>
                         ))
                       ) : (
@@ -375,7 +367,7 @@ const FPA = () => {
             {/* Right Side */}
             <div className="w-full md:w-[30%] flex flex-col gap-2 overflow-x-hidden">
               {/* Right Side Control */}
-              <div className="flex flex-wrap gap-2 items-center justify-center bg-gradient-to-r from-purple-100 via-white to-purple-100 p-4 rounded-lg shadow-sm">
+              {/* <div className="flex flex-wrap gap-2 items-center justify-center bg-gradient-to-r from-purple-100 via-white to-purple-100 p-4 rounded-lg shadow-sm">
                 <DateTimePicker
                   label="Start Time"
                   name="startTime"
@@ -399,7 +391,7 @@ const FPA = () => {
                 >
                   Query
                 </Button>
-              </div>
+              </div> */}
 
               {/* Right Side Table */}
               {loading ? (

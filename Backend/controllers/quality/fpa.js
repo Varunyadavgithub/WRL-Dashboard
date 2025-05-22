@@ -1,24 +1,39 @@
 import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getFpaCount = async (req, res) => {
-  const { startDate, endDate } = req.query;
-
-  if (!startDate || !endDate) {
-    return res.status(400).send("Missing startDate or endDate.");
-  }
-
-  // Get current date in 'yyyy-MM-dd' to avoid SQL errors
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const reportDateStr = `${year}-${month}-${day}`;
+
+  // Set start date: today at 08:00:00
+  const startDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    8,
+    0,
+    0
+  );
+
+  // Set end date: tomorrow at 20:00:00
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    20,
+    0,
+    0
+  );
+
+  // Report date: just today's date
+  const reportDateStr = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const query = `
     DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME, @AdjustedReportDate DATETIME;
 
     SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
     SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
+
     SET @AdjustedReportDate = DATEADD(MINUTE, 330, @ReportDate);
 
     WITH DUMDATA AS (
@@ -83,8 +98,8 @@ export const getFpaCount = async (req, res) => {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("StartDate", sql.DateTime, startDate)
+      .input("EndDate", sql.DateTime, endDate)
       .input("ReportDate", sql.DateTime, new Date(reportDateStr))
       .query(query);
 
@@ -202,6 +217,23 @@ export const getFpaDefect = async (req, res) => {
 
       .input("ReportDate", sql.DateTime, new Date(reportDateStr))
       .query(query);
+
+    res.json(result.recordset);
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const getDefectCategory = async (req, res) => {
+  const query = `
+    Select Code, Name from DefectCodeMaster
+  `;
+
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
+    const result = await pool.request().query(query);
 
     res.json(result.recordset);
     await pool.close();
