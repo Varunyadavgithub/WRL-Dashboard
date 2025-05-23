@@ -101,7 +101,6 @@ const HourlyReport = () => {
       const res = await axios.get(`${baseURL}prod/hourly-model-count`, {
         params,
       });
-      console.log(res);
       setHourlyModelCount(res?.data);
     } catch (error) {
       console.error("Error fetching hourly model count data:", error);

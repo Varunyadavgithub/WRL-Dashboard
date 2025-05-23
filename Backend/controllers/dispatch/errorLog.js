@@ -2,7 +2,7 @@ import sql, { dbConfig2 } from "../../config/db.js";
 
 export const getDispatchErrorLog = async (req, res) => {
   const { startDate, endDate } = req.query;
-console.log(startDate,endDate)
+
   if (!startDate || !endDate) {
     return res.status(400).send("Missing startDate or endDate.");
   }

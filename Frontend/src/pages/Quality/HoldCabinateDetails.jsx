@@ -51,7 +51,6 @@ const HoldCabinateDetails = () => {
       const res = await axios.get(`${baseURL}quality/hold-cabinet-details`, {
         params,
       });
-      console.log(res);
       setHoldCabinetDetails(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);

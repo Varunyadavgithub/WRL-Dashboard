@@ -26,7 +26,6 @@ function StageHistoryReport() {
         params: { serialNumber },
       });
       const data = res.data?.result?.recordsets[0] || [];
-      console.log(data);
       setStageHistoryData(data);
 
       if (data.length > 0 && data[0].MaterialName) {

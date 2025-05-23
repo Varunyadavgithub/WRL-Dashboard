@@ -64,10 +64,7 @@ const Overview = () => {
           params.model = 0;
         }
 
-        console.log("Params being sent:", params);
-
         const res = await axios.get(`${baseURL}prod/fgdata`, { params });
-        console.log("Response from server:", res.data);
         setProductionData(res.data);
       } catch (error) {
         console.error("Failed to fetch production data:", error);

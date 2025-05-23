@@ -70,7 +70,6 @@ const FPA = () => {
       const res = await axios.get(`${baseURL}quality/asset-details`, {
         params,
       });
-      console.log(res);
       setAssetDetails(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
@@ -82,7 +81,6 @@ const FPA = () => {
   const getFPQIDetails = async () => {
     try {
       const res = await axios.get(`${baseURL}quality/fpqi-details`);
-      console.log(res);
       setFpqiDetails(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
@@ -92,7 +90,6 @@ const FPA = () => {
   const getFpaDefect = async () => {
     try {
       const res = await axios.get(`${baseURL}quality/fpa-defect`);
-      console.log(res);
       setFpaDefect(res?.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
@@ -145,7 +142,6 @@ const FPA = () => {
         currentDateTime: getFormattedISTDate(),
         country,
       };
-      console.log(params);
       const res = await axios.post(`${baseURL}quality/add-fpa-defect`, params);
 
       if (res?.data?.success) {

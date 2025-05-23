@@ -42,7 +42,6 @@ const ErrorLog = () => {
         params: { startDate: startTime, endDate: endTime },
       });
       const data = res.data;
-      console.log(data);
       setErrorLogData(data);
     } catch (error) {
       console.error("Failed to fetch Error Log data:", error);

@@ -45,7 +45,6 @@ export const getModlelName = async (req, res) => {
 // Hold Cabinet
 export const holdCabinet = async (req, res) => {
   const holds = req.body;
-  console.log(holds);
   if (!Array.isArray(holds) || holds.length === 0) {
     return res.status(400).json({ error: "Empty or invalid holds array." });
   }
@@ -70,7 +69,6 @@ export const holdCabinet = async (req, res) => {
         );
 
       const HoldStatus = HoldStatusResult.recordset[0]?.serial || "~";
-      console.log("Check -> 1 Result: ", HoldStatus);
       await HoldStatusPool.close();
 
       if (HoldStatus === "~") {
@@ -84,7 +82,6 @@ export const holdCabinet = async (req, res) => {
           );
 
         const tempDispatch = tempDispatchResult.recordset[0]?.Session_ID || "~";
-        console.log("Check -> 2 Result: ", tempDispatch);
         await tempDispatchPool.close();
 
         if (tempDispatch === "~") {
@@ -99,7 +96,6 @@ export const holdCabinet = async (req, res) => {
 
           const dispatchSession =
             dispatchResult.recordset[0]?.Session_ID || "~";
-          console.log("Check -> 3 Result: ", dispatchSession);
           await dispatchMasterPool.close();
 
           if (dispatchSession === "~") {
@@ -173,7 +169,6 @@ export const holdCabinet = async (req, res) => {
 // Release Cabinet
 export const releaseCabinet = async (req, res) => {
   const releases = req.body;
-  console.log("Received releases:", releases);
   if (!Array.isArray(releases) || releases.length === 0) {
     return res.status(400).json({ error: "Invalid or empty request body." });
   }
@@ -198,7 +193,6 @@ export const releaseCabinet = async (req, res) => {
         );
 
       const ReleaseStatus = ReleaseStatusResult.recordset[0]?.serial || "~";
-      console.log("Check -> 1 Result: ", ReleaseStatus);
       await ReleaseStatusPool.close();
 
       if (ReleaseStatus === "~") {

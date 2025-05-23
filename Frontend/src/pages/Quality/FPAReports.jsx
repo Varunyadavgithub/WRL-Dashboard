@@ -47,25 +47,21 @@ const FPAReports = () => {
 
       if (reportType === "fpaReport") {
         const res = await axios.get(`${baseURL}quality/fpa-report`, { params });
-        console.log(res);
         setReportData(res.data);
       } else if (reportType === "dailyFpaReport") {
         const res = await axios.get(`${baseURL}quality/fpa-daily-report`, {
           params,
         });
-        console.log(res);
         setReportData(res.data);
       } else if (reportType === "monthlyFpaReport") {
         const res = await axios.get(`${baseURL}quality/fpa-monthly-report`, {
           params,
         });
-        console.log(res);
         setReportData(res.data);
       } else if (reportType === "yearlyFpaReport") {
         const res = await axios.get(`${baseURL}quality/fpa-yearly-report`, {
           params,
         });
-        console.log(res);
         setReportData(res.data);
       } else {
         alert("Please select the Report Type.");

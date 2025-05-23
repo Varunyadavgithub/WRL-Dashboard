@@ -301,17 +301,6 @@ export const addDefect = async (req, res) => {
     country,
   } = req.body;
 
-  console.log(
-    model,
-    shift,
-    FGSerialNumber,
-    Category,
-    AddDefect,
-    Remark,
-    country,
-    currentDateTime
-  );
-
   const query = `
     INSERT INTO FPAReport
     (Date, Model, Shift, FGSRNo, Country, Category, AddDefect, Remark)

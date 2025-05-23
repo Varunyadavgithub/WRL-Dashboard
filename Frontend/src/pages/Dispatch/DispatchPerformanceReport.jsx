@@ -33,34 +33,28 @@ const DispatchPerformanceReport = () => {
         const res = await axios.get(`${baseURL}dispatch/vehicle-uph`, {
           params,
         });
-        console.log(res);
         setDispatchData(res.data);
         const summRes = await axios.get(`${baseURL}dispatch/vehicle-summary`, {
           params,
         });
-        console.log(summRes);
         setDispatchSummaryData(summRes.data);
       } else if (dispatchType === "modelUph") {
         const res = await axios.get(`${baseURL}dispatch/model-count`, {
           params,
         });
-        console.log(res);
         setDispatchData(res.data);
         const summRes = await axios.get(`${baseURL}dispatch/model-summary`, {
           params,
         });
-        console.log(summRes);
         setDispatchSummaryData(summRes.data);
       } else if (dispatchType === "categoryUph") {
         const res = await axios.get(`${baseURL}dispatch/category-model-count`, {
           params,
         });
-        console.log(res);
         setDispatchData(res.data);
         const summRes = await axios.get(`${baseURL}dispatch/category-summary`, {
           params,
         });
-        console.log(summRes);
         setDispatchSummaryData(summRes.data);
       } else {
         toast.error("Please select the Report Type.");

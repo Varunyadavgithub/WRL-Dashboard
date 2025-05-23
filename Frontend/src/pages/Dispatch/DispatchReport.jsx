@@ -43,7 +43,6 @@ const DispatchReport = () => {
         params: { startDate: startTime, endDate: endTime },
       });
       const data = res.data;
-      console.log(data);
       setFgUnloadingData(data);
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
@@ -67,7 +66,6 @@ const DispatchReport = () => {
         },
       });
       const data = res.data;
-      console.log(data);
       setFgDispatchData(data);
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
@@ -83,7 +81,6 @@ const DispatchReport = () => {
       fetchFgDispatchData();
     }
   };
-  console.log(selectedStage);
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <Title title="Dispatch Report" align="center" />

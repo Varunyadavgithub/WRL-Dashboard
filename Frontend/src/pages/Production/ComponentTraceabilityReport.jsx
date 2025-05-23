@@ -47,7 +47,6 @@ const ComponentTraceabilityReport = () => {
       const res = await axios.get(`${baseURL}prod/component-traceability`, {
         params,
       });
-      console.log(res);
       setTraceabilityData(res?.data?.result);
     } catch (error) {
       console.error("Failed to fetch production data:", error);

@@ -106,7 +106,6 @@ const DispatchHold = () => {
           return;
         }
 
-        console.log("Excel File uploaded Data:", newFgData);
         setFgData((prev) => [...prev, ...newFgData]);
         toast.success("FG Serial Numbers uploaded successfully.");
       };
@@ -152,10 +151,7 @@ const DispatchHold = () => {
           .replace("Z", ""),
       }));
 
-      console.log("Hold payload:", payload);
-
       const res = await axios.post(`${baseURL}quality/hold`, payload);
-      console.log(res);
       // toast.success(res?.data?.message || "Hold request successful");
       alert(res?.data?.message || "Hold request successful");
 
@@ -201,7 +197,6 @@ const DispatchHold = () => {
           .replace("Z", ""),
       }));
 
-      console.log("Release payload:", payload);
       // Send batch release request
       const res = await axios.post(`${baseURL}quality/release`, payload);
 
@@ -217,8 +212,6 @@ const DispatchHold = () => {
       setLoading(false);
     }
   };
-
-  console.log("Total Data:", fgData);
 
   const handleClearFilters = () => {
     setAssemblySerialFile(""),

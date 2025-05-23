@@ -63,7 +63,6 @@ const TotalProduction = () => {
       setLoading(false);
     }
   };
-  console.log(totalProductionData);
 
   // Helper function to get category counts
   const getCategoryCounts = (data) => {

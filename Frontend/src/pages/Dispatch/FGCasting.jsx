@@ -27,7 +27,6 @@ const FGCasting = () => {
         params: { sessionId: serialNumber },
       });
       const data = res.data;
-      console.log(data);
       setFetchFgCastingData(data);
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
