@@ -162,7 +162,10 @@ const Overview = () => {
             >
               Query
             </Button>
-            <ExportButton />
+            <ExportButton
+              data={productionData}
+              filename="Production_Report_Data"
+            />
           </div>
         </div>
 

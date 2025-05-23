@@ -100,22 +100,25 @@ const TotalProduction = () => {
                 variants.find((opt) => opt.value === e.target.value) || 0
               )
             }
+            className="max-w-64"
           />
         </div>
 
         {/* Second Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="flex flex-wrap gap-4 mt-4">
           <DateTimePicker
             label="Start Time"
             name="startTime"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
+            className="max-w-64"
           />
           <DateTimePicker
             label="End Time"
             name="endTime"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
+            className="max-w-64"
           />
         </div>
 
