@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Button from "../../components/common/Button";
 import ExportButton from "../../components/common/ExportButton";
 import Title from "../../components/common/Title";
@@ -13,8 +13,18 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const FGCasting = () => {
   const [loading, setLoading] = useState(false);
   const [serialNumber, setSerialNumber] = useState("");
-  const [date, setDate] = useState("");
   const [fetchFgCastingData, setFetchFgCastingData] = useState([]);
+  const initialCastingState = {
+    vehicleNo: "",
+    lrNo: "",
+    transporter: "",
+    location: "",
+    sealNo: "",
+    driverPhNo: "",
+    invoiceNo: "",
+    date: "",
+  };
+  const [castingDetails, setCastingDetails] = useState(initialCastingState);
 
   const fetchFgCastingDataBySession = async () => {
     if (!serialNumber) {
@@ -27,6 +37,7 @@ const FGCasting = () => {
         params: { sessionId: serialNumber },
       });
       const data = res.data;
+      console.log(data);
       setFetchFgCastingData(data);
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
@@ -42,6 +53,20 @@ const FGCasting = () => {
 
   const handleQuery = () => {
     fetchFgCastingDataBySession();
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCastingDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCastingData = () => {
+    console.log("Casting Details:", castingDetails);
+    toast.success("Casting data logged to console");
+    setCastingDetails(initialCastingState);
   };
 
   return (
@@ -65,7 +90,10 @@ const FGCasting = () => {
               bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
               textColor={loading ? "text-white" : "text-black"}
               className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              onClick={handleQuery}
+              onClick={() => {
+                handleQuery();
+                handleCastingData();
+              }}
               disabled={loading}
             >
               Query
@@ -80,7 +108,20 @@ const FGCasting = () => {
             >
               Clear Filter
             </Button>
-            <ExportButton />
+            <ExportButton
+              data={fetchFgCastingData.map((item) => ({
+                ModelName: item.ModelName,
+                AssetCode: item.AssetCode,
+                FGSerialNo: item.FGSerialNo,
+              }))}
+              filename="FG_Casting_Data"
+            />
+            <div className="mt-4 text-left font-bold text-lg">
+              COUNT:{" "}
+              <span className="text-blue-700">
+                {fetchFgCastingData?.length || 0}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -99,6 +140,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="vehicleNo"
+                  value={castingDetails.vehicleNo}
+                  onChange={handleChange}
                 />
                 <InputField
                   label="Lr No."
@@ -106,6 +149,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="lrNo"
+                  value={castingDetails.lrNo}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -117,6 +162,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="transporter"
+                  value={castingDetails.transporter}
+                  onChange={handleChange}
                 />
                 <InputField
                   label="Location"
@@ -124,6 +171,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="location"
+                  value={castingDetails.location}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -135,6 +184,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="sealNo"
+                  value={castingDetails.sealNo}
+                  onChange={handleChange}
                 />
                 <InputField
                   label="Driver Ph. No."
@@ -142,6 +193,8 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="driverPhNo"
+                  value={castingDetails.driverPhNo}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -153,12 +206,14 @@ const FGCasting = () => {
                   placeholder="Enter details"
                   className="w-full"
                   name="invoiceNo"
+                  value={castingDetails.invoiceNo}
+                  onChange={handleChange}
                 />
                 <DateTimePicker
                   label="Date"
                   name="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  value={castingDetails.date}
+                  onChange={handleChange}
                 />
               </div>
             </div>
