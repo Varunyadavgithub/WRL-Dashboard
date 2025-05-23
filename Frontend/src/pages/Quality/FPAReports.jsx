@@ -249,6 +249,7 @@ const FpaReportTable = ({ data }) => {
             <th className="px-1 py-1 border min-w-[120px]">Model</th>
             <th className="px-1 py-1 border min-w-[120px]">Shift</th>
             <th className="px-1 py-1 border min-w-[120px]">FGSRNO</th>
+            <th className="px-1 py-1 border min-w-[120px]">Country</th>
             <th className="px-1 py-1 border min-w-[120px]">Category</th>
             <th className="px-1 py-1 border min-w-[120px]">Add Defect</th>
             <th className="px-1 py-1 border min-w-[120px]">Remark</th>
@@ -257,7 +258,7 @@ const FpaReportTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.SRNo}</td>
                 <td className="px-1 py-1 border">
                   {row.Date && row.Date.replace("T", " ").replace("Z", "")}
@@ -265,6 +266,7 @@ const FpaReportTable = ({ data }) => {
                 <td className="px-1 py-1 border">{row.Model}</td>
                 <td className="px-1 py-1 border">{row.Shift}</td>
                 <td className="px-1 py-1 border">{row.FGSRNo}</td>
+                <td className="px-1 py-1 border">{row.Country}</td>
                 <td className="px-1 py-1 border">{row.Category}</td>
                 <td className="px-1 py-1 border">{row.AddDefect}</td>
                 <td className="px-1 py-1 border">{row.Remark}</td>
@@ -301,7 +303,7 @@ const DailyFpaReportTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">
                   {row.Date && row.Date.replace("T", " ").replace("Z", "")}
                 </td>
@@ -344,7 +346,7 @@ const MonthlyFpaReportTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.Month}</td>
                 <td className="px-1 py-1 border">{row.Year}</td>
                 <td className="px-1 py-1 border">{row.NoOfCritical}</td>
@@ -384,7 +386,7 @@ const YearlyFpaReportTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.Year}</td>
                 <td className="px-1 py-1 border">{row.NoOfCritical}</td>
                 <td className="px-1 py-1 border">{row.NoOfMajor}</td>

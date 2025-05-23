@@ -154,7 +154,32 @@ export const getAssetDetails = async (req, res) => {
 };
 
 export const getFPQIDetails = async (req, res) => {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+
+  // Set start date: today at 08:00:00
+  const startDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    8,
+    0,
+    0
+  );
+
+  // Set end date: tomorrow at 20:00:00
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    20,
+    0,
+    0
+  );
+
+  // Report date: just today's date
+  const reportDateStr = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const query = `
     SELECT 
@@ -168,7 +193,7 @@ export const getFPQIDetails = async (req, res) => {
           (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
       ) AS FLOAT) / NULLIF(COUNT(DISTINCT FGSRNo), 0) AS FPQI
     FROM FPAReport
-    WHERE Date = @Date;
+    WHERE Date Between @startDate and @endDate;
   `;
 
   try {
@@ -176,7 +201,8 @@ export const getFPQIDetails = async (req, res) => {
 
     const result = await pool
       .request()
-      .input("Date", sql.Date, today)
+      .input("startDate", sql.DateTime, startDate)
+      .input("endDate", sql.DateTime, endDate)
       .query(query);
 
     if (!result.recordset.length) {
@@ -199,15 +225,34 @@ export const getFPQIDetails = async (req, res) => {
 };
 
 export const getFpaDefect = async (req, res) => {
-  // Get current date in 'yyyy-MM-dd' to avoid SQL errors
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const reportDateStr = `${year}-${month}-${day}`;
 
+  // Set start date: today at 08:00:00
+  const startDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    8,
+    0,
+    0
+  );
+
+  // Set end date: tomorrow at 20:00:00
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    20,
+    0,
+    0
+  );
+
+  // Report date: just today's date
+  const reportDateStr = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const query = `
-    Select * from FPAReport where Date = @ReportDate
+    Select * from FPAReport where Date Between @StartDate and @EndDate
   `;
 
   try {
@@ -215,7 +260,8 @@ export const getFpaDefect = async (req, res) => {
     const result = await pool
       .request()
 
-      .input("ReportDate", sql.DateTime, new Date(reportDateStr))
+      .input("StartDate", sql.DateTime, startDate)
+      .input("EndDate", sql.DateTime, endDate)
       .query(query);
 
     res.json(result.recordset);
@@ -236,6 +282,60 @@ export const getDefectCategory = async (req, res) => {
     const result = await pool.request().query(query);
 
     res.json(result.recordset);
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const addDefect = async (req, res) => {
+  const {
+    model,
+    shift,
+    FGSerialNumber,
+    Category,
+    AddDefect,
+    Remark,
+    currentDateTime,
+    country,
+  } = req.body;
+
+  console.log(
+    model,
+    shift,
+    FGSerialNumber,
+    Category,
+    AddDefect,
+    Remark,
+    country,
+    currentDateTime
+  );
+
+  const query = `
+    INSERT INTO FPAReport
+    (Date, Model, Shift, FGSRNo, Country, Category, AddDefect, Remark)
+    VALUES (@Date, @Model, @Shift, @FGSRNo, @Country, @Category, @AddDefect, @Remark)
+  `;
+
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
+    const request = pool.request();
+
+    request.input("Date", sql.DateTime, currentDateTime);
+    request.input("Model", sql.NVarChar, model);
+    request.input("Shift", sql.NVarChar, shift);
+    request.input("FGSRNo", sql.NVarChar, FGSerialNumber);
+    request.input("Country", sql.NVarChar, country);
+    request.input("Category", sql.NVarChar, Category);
+    request.input("AddDefect", sql.NVarChar, AddDefect);
+    request.input("Remark", sql.NVarChar, Remark);
+
+    const result = await request.query(query);
+    res
+      .status(200)
+      .json({ success: true, message: "Defect added successfully" });
+
     await pool.close();
   } catch (err) {
     console.error("SQL Error:", err.message);

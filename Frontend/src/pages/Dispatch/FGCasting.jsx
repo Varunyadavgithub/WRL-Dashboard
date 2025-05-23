@@ -176,7 +176,7 @@ const FGCasting = () => {
               <Loader />
             ) : (
               <div className="w-full max-h-[600px] overflow-x-auto">
-                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <table className=" border bg-white text-xs text-left rounded-lg table-auto">
                   <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                     <tr>
                       <th className="px-1 py-1 border min-w-[120px]">Model</th>
@@ -189,9 +189,14 @@ const FGCasting = () => {
                   <tbody>
                     {fetchFgCastingData.length > 0 ? (
                       fetchFgCastingData.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-100">
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 text-center"
+                        >
                           <td className="px-1 py-1 border">{item.ModelName}</td>
-                          <td className="px-1 py-1 border">{"N/A"}</td>
+                          <td className="px-1 py-1 border">
+                            {item.FGSerialNo}
+                          </td>
                           <td className="px-1 py-1 border">{item.AssetCode}</td>
                         </tr>
                       ))

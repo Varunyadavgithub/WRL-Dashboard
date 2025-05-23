@@ -13,7 +13,7 @@ export const getFpaReport = async (req, res) => {
     SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
     SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
 
-    SELECT * FROM FPAReport WHERE Date >= @AdjustedStartDate AND Date <= @AdjustedEndDate
+    SELECT * FROM FPAReport WHERE Date BETWEEN @AdjustedStartDate AND @AdjustedEndDate
   `;
 
   try {

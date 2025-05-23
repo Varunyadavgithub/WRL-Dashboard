@@ -1,34 +1,46 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
 import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
-import { useState } from "react";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
-import DateTimePicker from "../../components/common/DateTimePicker";
-import axios from "axios";
 import Loader from "../../components/common/Loader";
-import toast from "react-hot-toast";
-import { useEffect } from "react";
+import { getFormattedISTDate } from "../../utils/dateUtils";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const FPA = () => {
   const Shift = [
-    { label: "Morning Shift", value: "shift 1" },
-    { label: "Night Shift", value: "shift 2" },
+    { label: "Shift 1", value: "shift 1" },
+    { label: "Shift 2", value: "shift 2" },
   ];
+
+  const DefectCategory = [
+    { label: "Minor", value: "minor" },
+    { label: "Major", value: "major" },
+    { label: "Critical", value: "critical" },
+  ];
+
   const [loading, setLoading] = useState(false);
-  const [barcodeNumber, setBarcodeNumber] = useState(null);
-  const [remark, setRemark] = useState("");
-  const [country, setCountry] = useState("");
-  const [shift, setShift] = useState(Shift[0]);
+  const [barcodeNumber, setBarcodeNumber] = useState("");
   const [addManually, setAddManually] = useState(false);
-  const [fpaDefectCategory, setFpaDefectCategory] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [manualCategory, setManualCategory] = useState("");
+  const [fpaDefectCategory, setFpaDefectCategory] = useState([]);
+  const [selectedFpaDefectCategory, setSelectedFpaDefectCategory] = useState(
+    []
+  );
   const [fpaCountData, setFpaCountData] = useState([]);
   const [assetDetails, setAssetDetails] = useState([]);
   const [fpqiDetails, setFpqiDetails] = useState([]);
   const [fpaDefect, setFpaDefect] = useState([]);
+
+  const [remark, setRemark] = useState("");
+  const [country, setCountry] = useState("");
+  const [shift, setShift] = useState(Shift[0]);
+  const [selectedDefectCategory, setSelectedDefectCategory] = useState(
+    DefectCategory[0]
+  );
 
   const getFPACountData = async () => {
     try {
@@ -100,12 +112,65 @@ const FPA = () => {
     }
   };
 
+  const handleAddDefect = async () => {
+    if (!assetDetails.FGNo || !assetDetails.ModelName) {
+      toast.error("Asset details not available. Please scan a barcode.");
+      return;
+    }
+
+    if (!selectedDefectCategory?.value) {
+      toast.error("Please select a defect category.");
+      return;
+    }
+
+    const defectToAdd = addManually
+      ? manualCategory?.trim()
+      : selectedFpaDefectCategory.label;
+
+    if (!defectToAdd || defectToAdd.length === 0) {
+      toast.error("Please select or enter a defect.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const params = {
+        model: assetDetails.ModelName,
+        shift: shift.value,
+        FGSerialNumber: assetDetails.FGNo,
+        Category: selectedDefectCategory.value,
+        AddDefect: defectToAdd,
+        Remark: remark,
+        currentDateTime: getFormattedISTDate(),
+        country,
+      };
+      console.log(params);
+      const res = await axios.post(`${baseURL}quality/add-fpa-defect`, params);
+
+      if (res?.data?.success) {
+        toast.success("Defect added successfully!");
+        setRemark("");
+        setManualCategory("");
+        window.location.reload();
+      } else {
+        toast.error("Failed to add defect.");
+      }
+    } catch (error) {
+      console.error("Error adding defect:", error);
+      toast.error("An error occurred while adding the defect.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     getFPQIDetails();
     getFpaDefect();
     getFPACountData();
     getFpaDefectCategory();
   }, []);
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
       <Title title="FPA" align="center" />
@@ -137,6 +202,12 @@ const FPA = () => {
               >
                 Search
               </Button>
+              <h1 className="font-semibold text-xl mt-2">
+                No of Sample Inspected:{" "}
+                <span className="text-blue-700 text-md">
+                  {fpqiDetails.TotalFGSRNo || "0"}
+                </span>
+              </h1>
             </div>
 
             {/* Info Section */}
@@ -160,38 +231,6 @@ const FPA = () => {
                 </span>
               </h1>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md w-full lg:max-w-xs flex flex-col items-center justify-center gap-4">
-          <div className="flex flex-col gap-4 items-start justify-center">
-            <h1 className="font-semibold text-xl">
-              No of Sample Inspected:{" "}
-              <span className="text-blue-700 text-md">
-                {fpqiDetails.TotalFGSRNo || "0"}
-              </span>
-            </h1>
-            <InputField
-              label="Country"
-              type="text"
-              placeholder="Enter Country"
-              className="max-w-65"
-              name="Country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-            />
-            <SelectField
-              label="Shift"
-              options={Shift}
-              value={shift.value}
-              onChange={(e) => {
-                const selected = Shift.find(
-                  (item) => item.value === e.target.value
-                );
-                setShift(selected);
-              }}
-              className="max-w-65"
-            />
           </div>
         </div>
 
@@ -236,84 +275,109 @@ const FPA = () => {
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="bg-white border border-gray-300 rounded-md p-2">
+          {/* Control */}
+          <div className="flex flex-wrap gap-4 items-start justify-start bg-gradient-to-r from-purple-100 via-white to-purple-100 p-4 rounded-lg shadow-sm mb-2">
+            <SelectField
+              label="Category"
+              options={DefectCategory}
+              value={DefectCategory.value}
+              onChange={(e) => {
+                const selected = DefectCategory.find(
+                  (item) => item.value === e.target.value
+                );
+                setSelectedDefectCategory(selected);
+              }}
+              className="w-60"
+            />
+            <InputField
+              label="Country"
+              type="text"
+              placeholder="Enter Country"
+              className="max-w-40"
+              name="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+            <SelectField
+              label="Shift"
+              options={Shift}
+              value={shift.value}
+              onChange={(e) => {
+                const selected = Shift.find(
+                  (item) => item.value === e.target.value
+                );
+                setShift(selected);
+              }}
+              className="max-w-65"
+            />
+            <div className="flex flex-col gap-2 w-72">
+              {/* Radio Button Toggle */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="addManually"
+                  checked={addManually}
+                  onChange={() => setAddManually(!addManually)}
+                  className="cursor-pointer"
+                />
+                <label
+                  htmlFor="addManually"
+                  className="cursor-pointer font-medium"
+                >
+                  Add Defect Manually
+                </label>
+              </div>
+
+              {/* Conditional Rendering */}
+              {addManually ? (
+                <InputField
+                  label="Manual Defect Category"
+                  type="text"
+                  placeholder="Enter defect category"
+                  value={manualCategory}
+                  onChange={(e) => setManualCategory(e.target.value)}
+                />
+              ) : (
+                <SelectField
+                  label="Select Defect Category"
+                  options={fpaDefectCategory}
+                  value={selectedFpaDefectCategory.values}
+                  onChange={(e) => {
+                    const selectedOption = fpaDefectCategory.find(
+                      (option) => option.value === e.target.value
+                    );
+                    setSelectedFpaDefectCategory(selectedOption);
+                  }}
+                />
+              )}
+            </div>
+
+            <InputField
+              label="Remark"
+              type="text"
+              placeholder="Enter Remark"
+              className="w-64"
+              name="remark"
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+            />
+
+            <Button
+              bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+              textColor={loading ? "text-white" : "text-black"}
+              className={`font-semibold h-fit mt-6 ${
+                loading ? "cursor-not-allowed" : ""
+              }`}
+              onClick={handleAddDefect}
+              disabled={loading}
+            >
+              Add Defect
+            </Button>
+          </div>
+
           <div className="flex flex-col md:flex-row items-start gap-1">
             {/* Left Side */}
             <div className="w-full md:flex-1 flex flex-col gap-2">
-              {/* Left Side Control */}
-              <div className="flex flex-wrap gap-4 items-start justify-start bg-gradient-to-r from-purple-100 via-white to-purple-100 p-4 rounded-lg shadow-sm">
-                <SelectField
-                  label="Category"
-                  options={Shift}
-                  value={shift.value}
-                  onChange={(e) => {
-                    const selected = Shift.find(
-                      (item) => item.value === e.target.value
-                    );
-                    setShift(selected);
-                  }}
-                  className="w-60"
-                />
-
-                <div className="flex flex-col gap-2 w-72">
-                  {/* Radio Button Toggle */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="addManually"
-                      checked={addManually}
-                      onChange={() => setAddManually(!addManually)}
-                      className="cursor-pointer"
-                    />
-                    <label
-                      htmlFor="addManually"
-                      className="cursor-pointer font-medium"
-                    >
-                      Add Defect Manually
-                    </label>
-                  </div>
-
-                  {/* Conditional Rendering */}
-                  {addManually ? (
-                    <InputField
-                      label="Manual Defect Category"
-                      type="text"
-                      placeholder="Enter defect category"
-                      value={manualCategory}
-                      onChange={(e) => setManualCategory(e.target.value)}
-                    />
-                  ) : (
-                    <SelectField
-                      label="Select Defect Category"
-                      options={fpaDefectCategory}
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                    />
-                  )}
-                </div>
-
-                <InputField
-                  label="Remark"
-                  type="text"
-                  placeholder="Enter Remark"
-                  className="w-64"
-                  name="remark"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                />
-
-                <Button
-                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
-                  textColor={loading ? "text-white" : "text-black"}
-                  className={`font-semibold h-fit mt-6 ${
-                    loading ? "cursor-not-allowed" : ""
-                  }`}
-                  onClick={() => console.log("Clicked")}
-                  disabled={loading}
-                >
-                  Add Defect
-                </Button>
-              </div>
-
               {/* Left Side Table */}
               {loading ? (
                 <Loader />
@@ -337,7 +401,10 @@ const FPA = () => {
                         fpaDefect.map((item, index) => (
                           <tr key={index} className="hover:bg-gray-100">
                             <td className="px-1 py-1 border">{item.SRNo}</td>
-                            <td className="px-1 py-1 border">{item.Date}</td>
+                            <td className="px-1 py-1 border">
+                              {item.Date &&
+                                item.Date.replace("T", " ").replace("Z", "")}
+                            </td>
                             <td className="px-1 py-1 border">{item.Model}</td>
                             <td className="px-1 py-1 border">{item.Shift}</td>
 
@@ -366,33 +433,6 @@ const FPA = () => {
 
             {/* Right Side */}
             <div className="w-full md:w-[30%] flex flex-col gap-2 overflow-x-hidden">
-              {/* Right Side Control */}
-              {/* <div className="flex flex-wrap gap-2 items-center justify-center bg-gradient-to-r from-purple-100 via-white to-purple-100 p-4 rounded-lg shadow-sm">
-                <DateTimePicker
-                  label="Start Time"
-                  name="startTime"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-                <DateTimePicker
-                  label="End Time"
-                  name="endTime"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
-                <Button
-                  bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
-                  textColor={loading ? "text-white" : "text-black"}
-                  className={`font-semibold h-fit mt-6 ${
-                    loading ? "cursor-not-allowed" : ""
-                  }`}
-                  onClick={handleFPACountQuery}
-                  disabled={loading}
-                >
-                  Query
-                </Button>
-              </div> */}
-
               {/* Right Side Table */}
               {loading ? (
                 <Loader />
