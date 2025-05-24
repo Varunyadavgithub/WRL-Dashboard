@@ -199,7 +199,7 @@ const HoldCabinateDetails = () => {
                     <tbody>
                       {holdCabinetDetails.length > 0 ? (
                         holdCabinetDetails.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{item.ModelNo}</td>
                             <td className="px-1 py-1 border">
                               {item.FGSerialNo}
@@ -307,7 +307,7 @@ const HoldCabinateDetails = () => {
                     <tbody>
                       {getGroupedData().length > 0 ? (
                         getGroupedData().map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{item.key}</td>
                             <td className="px-1 py-1 border">{item.count}</td>
                           </tr>

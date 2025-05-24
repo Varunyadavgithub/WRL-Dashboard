@@ -297,7 +297,7 @@ const HourlyReport = () => {
                     <tbody>
                       {hourData && hourData.length > 0 ? (
                         hourData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">
                               {item.HOUR_NUMBER}
                             </td>
@@ -335,7 +335,7 @@ const HourlyReport = () => {
                     <tbody>
                       {hourlyModelCount.length > 0 ? (
                         hourlyModelCount.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">
                               {item.TIMEHOUR}
                             </td>

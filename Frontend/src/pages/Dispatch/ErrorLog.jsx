@@ -191,7 +191,7 @@ const ErrorLog = () => {
                     <tbody>
                       {errorLogData && errorLogData.length > 0 ? (
                         errorLogData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">
                               {item.Session_ID}
                             </td>
@@ -277,7 +277,7 @@ const ErrorLog = () => {
                     <tbody>
                       {getGroupedData().length > 0 ? (
                         getGroupedData().map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{item.key}</td>
                             <td className="px-1 py-1 border">{item.count}</td>
                           </tr>

@@ -241,7 +241,7 @@ const DispatchVehicleUph = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
                 <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
                 <td className="px-1 py-1 border">{row.COUNT}</td>
@@ -274,7 +274,7 @@ const DispatchModelUph = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
                 <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
                 <td className="px-1 py-1 border">{row.COUNT}</td>
@@ -307,7 +307,7 @@ const DispatchCategoryUph = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.COUNT}</td>
                 <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
                 <td className="px-1 py-1 border">{row.TIMEHOUR}</td>{" "}
@@ -350,7 +350,7 @@ const DispatchSummaryVehicleUph = ({ data }) => {
       <tbody>
         {data && data.length > 0 ? (
           data.map((row, index) => (
-            <tr key={index} className="hover:bg-gray-100">
+            <tr key={index} className="hover:bg-gray-100 text-center">
               <td className="px-1 py-1 border">{row.HOUR_NUMBER}</td>
               <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
               <td className="px-1 py-1 border">{row.session_ID}</td>
@@ -389,7 +389,7 @@ const DispatchSummaryModelUph = ({ data }) => {
       <tbody>
         {data && data.length > 0 ? (
           data.map((row, index) => (
-            <tr key={index} className="hover:bg-gray-100">
+            <tr key={index} className="hover:bg-gray-100 text-center">
               <td className="px-1 py-1 border">{row.TIMEHOUR}</td>
               <td className="px-1 py-1 border">{row.ModelName}</td>
               <td className="px-1 py-1 border">{row.COUNT}</td>
@@ -423,7 +423,7 @@ const DispatchSummaryCategoryUph = ({ data }) => {
       <tbody>
         {data && data.length > 0 ? (
           data.map((row, index) => (
-            <tr key={index} className="hover:bg-gray-100">
+            <tr key={index} className="hover:bg-gray-100 text-center">
               <td className="px-1 py-1 border">{row.ModelName}</td>
               <td className="px-1 py-1 border">{row.COUNT}</td>
             </tr>

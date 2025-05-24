@@ -81,7 +81,7 @@ const ModelNameUpdate = () => {
                 </thead>
                 <tbody>
                   {[1, 2, 3, 4, 5].map((item, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="hover:bg-gray-100 text-center">
                       <td className="px-1 py-1 border">01</td>
                       <td className="px-1 py-1 border">101</td>
                     </tr>
@@ -107,7 +107,7 @@ const ModelNameUpdate = () => {
                 </thead>
                 <tbody>
                   {[1, 2, 3, 4, 5].map((item, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="hover:bg-gray-100 text-center">
                       <td className="px-1 py-1 border">Model_01</td>
                       <td className="px-1 py-1 border">01</td>
                       <td className="px-1 py-1 border">0001</td>

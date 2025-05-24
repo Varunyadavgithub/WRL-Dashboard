@@ -395,7 +395,7 @@ const FPA = () => {
                     <tbody>
                       {fpaDefect && fpaDefect.length > 0 ? (
                         fpaDefect.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{item.SRNo}</td>
                             <td className="px-1 py-1 border">
                               {item.Date &&
@@ -446,7 +446,7 @@ const FPA = () => {
                     <tbody>
                       {fpaCountData && fpaCountData.length > 0 ? (
                         fpaCountData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">
                               {item.ModelName}
                             </td>

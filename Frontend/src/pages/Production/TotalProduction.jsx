@@ -173,7 +173,7 @@ const TotalProduction = () => {
                     {totalProductionData?.data?.recordsets?.[0].length > 0 ? (
                       totalProductionData?.data?.recordsets[0].map(
                         (item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border min-w-[120px]">
                               {item.Model_Name}
                             </td>
@@ -219,7 +219,7 @@ const TotalProduction = () => {
                             totalProductionData.data.recordsets[0]
                           )
                         ).map(([modelName, count], index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{modelName}</td>
                             <td className="px-1 py-1 border">{count}</td>
                           </tr>
@@ -255,7 +255,7 @@ const TotalProduction = () => {
                             totalProductionData.data.recordsets[0]
                           )
                         ).map(([category, count], index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                          <tr key={index} className="hover:bg-gray-100 text-center">
                             <td className="px-1 py-1 border">{category}</td>
                             <td className="px-1 py-1 border">{count}</td>
                           </tr>

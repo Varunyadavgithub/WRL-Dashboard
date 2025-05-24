@@ -1,12 +1,10 @@
-
 const LineHourlyReportTables = ({ tableConfigurations, lineType }) => {
   // Render individual table
   const renderTable = (title, data) => {
     // Calculate total count
-    const totalCount = data && data.reduce(
-      (sum, item) => sum + (item.COUNT || item.Count || 0),
-      0
-    );
+    const totalCount =
+      data &&
+      data.reduce((sum, item) => sum + (item.COUNT || item.Count || 0), 0);
 
     return (
       <div
@@ -41,7 +39,7 @@ const LineHourlyReportTables = ({ tableConfigurations, lineType }) => {
               <tbody>
                 {data && data.length > 0 ? (
                   data.map((item, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="hover:bg-gray-100 text-center">
                       {title !== "Category Count" ? (
                         <>
                           <td className="px-1 py-1 border">

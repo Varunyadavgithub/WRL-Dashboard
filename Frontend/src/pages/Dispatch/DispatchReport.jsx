@@ -202,7 +202,7 @@ const FgUnloadingTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.ModelName}</td>
                 <td className="px-1 py-1 border">{row.FGSerialNo}</td>
                 <td className="px-1 py-1 border">{row.AssetCode}</td>
@@ -250,7 +250,7 @@ const FgDispatchTable = ({ data }) => {
         <tbody>
           {data && data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
+              <tr key={index} className="hover:bg-gray-100 text-center">
                 <td className="px-1 py-1 border">{row.ModelName}</td>
                 <td className="px-1 py-1 border">{row.FGSerialNo}</td>
                 <td className="px-1 py-1 border">{row.AssetCode}</td>
