@@ -56,7 +56,8 @@ const TotalProduction = () => {
       }
 
       const res = await axios.get(`${baseURL}prod/barcode-details`, { params });
-      setTotalProductionData(res);
+      console.log(res);
+      setTotalProductionData(res.data);
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -68,7 +69,7 @@ const TotalProduction = () => {
   const getCategoryCounts = (data) => {
     const counts = {};
     data.forEach((item) => {
-      const category = item.Category || "Unknown";
+      const category = item.category || "Unknown";
       counts[category] = (counts[category] || 0) + 1;
     });
     return counts;
@@ -141,7 +142,7 @@ const TotalProduction = () => {
           <div className="mt-4 text-left font-bold text-lg">
             COUNT:{" "}
             <span className="text-blue-700">
-              {totalProductionData?.data?.recordsets?.[0]?.length || 0}{" "}
+              {totalProductionData.length || 0}{" "}
             </span>
           </div>
         </div>
@@ -150,127 +151,109 @@ const TotalProduction = () => {
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="bg-white border border-gray-300 rounded-md p-4">
-          <div className="flex flex-col md:flex-row items-start gap-4 p-4">
-            {/* Left Side - Wider */}
-            <div className="w-full md:w-3/4">
-              {/* Table 1 */}
-              <div className="w-full max-h-[600px] overflow-x-auto">
-                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                  <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                    <tr>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Model_Name
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        FG Serial_No.
-                      </th>
-                      <th className="px-1 py-1 border min-w-[120px]">
-                        Asset tag
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalProductionData?.data?.recordsets?.[0].length > 0 ? (
-                      totalProductionData?.data?.recordsets[0].map(
-                        (item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
-                            <td className="px-1 py-1 border min-w-[120px]">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border min-w-[120px]">
-                              {item.FG_SR}
-                            </td>
-                            <td className="px-1 py-1 border min-w-[120px]">
-                              {item.Asset_tag}
-                            </td>
-                          </tr>
-                        )
-                      )
-                    ) : (
-                      <tr>
-                        <td colSpan={12} className="text-center py-4">
-                          No data found.
-                        </td>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Table 1 */}
+            <div className="max-h-[600px] overflow-x-auto w-full">
+              <table className="w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                  <tr>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Model_Name
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      FG Serial_No.
+                    </th>
+                    <th className="px-1 py-1 border min-w-[120px]">
+                      Asset tag
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {totalProductionData?.length > 0 ? (
+                    totalProductionData.map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-100 text-center">
+                        <td className="px-1 py-1 border">{item.Model_Name}</td>
+                        <td className="px-1 py-1 border">{item.FG_SR}</td>
+                        <td className="px-1 py-1 border">{item.Asset_tag}</td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="text-center py-4">
+                        No data found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
 
-            {/* Right Side - Narrower */}
-            <div className="w-full md:w-1/4 flex flex-col">
-              <div className="w-full flex-1">
-                <div className="w-full max-h-[500px] overflow-x-auto">
-                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                    <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr>
-                        <th className="px-1 py-1 border min-w-[80px]">
-                          Model_Name
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px]">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {totalProductionData?.data?.recordsets?.[0]?.length >
-                      0 ? (
-                        Object.entries(
-                          getModelNameCount(
-                            totalProductionData.data.recordsets[0]
-                          )
-                        ).map(([modelName, count], index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
-                            <td className="px-1 py-1 border">{modelName}</td>
-                            <td className="px-1 py-1 border">{count}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={2} className="text-center py-4">
-                            No data found.
-                          </td>
+            {/* Table 2 */}
+            <div className="max-h-[500px] overflow-x-auto w-full">
+              <table className="w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                  <tr>
+                    <th className="px-1 py-1 border min-w-[80px]">
+                      Model_Name
+                    </th>
+                    <th className="px-1 py-1 border min-w-[80px]">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {totalProductionData.length > 0 ? (
+                    Object.entries(getModelNameCount(totalProductionData)).map(
+                      ([modelName, count], index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 text-center"
+                        >
+                          <td className="px-1 py-1 border">{modelName}</td>
+                          <td className="px-1 py-1 border">{count}</td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                      )
+                    )
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="text-center py-4">
+                        No data found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-              <div className="w-full flex-1">
-                <div className="w-full max-h-[500px] overflow-x-auto mt-6">
-                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                    <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr>
-                        <th className="px-1 py-1 border min-w-[80px]">
-                          Category
-                        </th>
-                        <th className="px-1 py-1 border min-w-[80px]">Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {totalProductionData?.data?.recordsets?.[0]?.length >
-                      0 ? (
-                        Object.entries(
-                          getCategoryCounts(
-                            totalProductionData.data.recordsets[0]
-                          )
-                        ).map(([category, count], index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
-                            <td className="px-1 py-1 border">{category}</td>
-                            <td className="px-1 py-1 border">{count}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={2} className="text-center py-4">
-                            No data found.
-                          </td>
+            {/* Table 3 */}
+            <div className="max-h-[500px] overflow-x-auto w-full">
+              <table className="w-full border bg-white text-xs text-left rounded-lg table-auto">
+                <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                  <tr>
+                    <th className="px-1 py-1 border min-w-[80px]">Category</th>
+                    <th className="px-1 py-1 border min-w-[80px]">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {totalProductionData.length > 0 ? (
+                    Object.entries(getCategoryCounts(totalProductionData)).map(
+                      ([category, count], index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 text-center"
+                        >
+                          <td className="px-1 py-1 border">{category}</td>
+                          <td className="px-1 py-1 border">{count}</td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                      )
+                    )
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="text-center py-4">
+                        No data found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
