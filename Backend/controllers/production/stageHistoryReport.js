@@ -41,7 +41,6 @@ LEFT JOIN
     ProcessActivityType C ON C.id = A.ActivityType
 ORDER BY 
     A.ActivityOn DESC;
-
     `;
 
   try {

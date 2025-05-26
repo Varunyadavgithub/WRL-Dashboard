@@ -7,21 +7,21 @@ export const getFpaReport = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME, @AdjustedReportDate DATETIME;
-
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT * FROM FPAReport WHERE Date BETWEEN @AdjustedStartDate AND @AdjustedEndDate
-  `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+      SELECT * 
+      FROM FPAReport 
+      WHERE Date BETWEEN @startDate AND @endDate
+    `;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -39,34 +39,32 @@ export const getFpaDailyReport = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME, @AdjustedReportDate DATETIME;
-
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT
-    CAST(Date AS DATE) AS Date,
-    DATENAME(MONTH, Date) AS Month,
-    SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
-    SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
-    SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
-    COUNT(DISTINCT FGSRNo) AS [SampleInspected],
-    ROUND(CAST(((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9)
-        + (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6)
-        + (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)) AS FLOAT)
-        / NULLIF(COUNT(DISTINCT FGSRNo), 0), 3) AS FPQI
-FROM FPAReport
-WHERE Date >= @AdjustedStartDate AND Date <= @AdjustedEndDate
-GROUP BY CAST(Date AS DATE), DATENAME(MONTH, Date);
-  `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+      SELECT
+        CAST(Date AS DATE) AS Date,
+        DATENAME(MONTH, Date) AS Month,
+        SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
+        SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
+        SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
+        COUNT(DISTINCT FGSRNo) AS [SampleInspected],
+        ROUND(CAST(((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9)
+          + (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6)
+          + (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)) AS FLOAT)
+          / NULLIF(COUNT(DISTINCT FGSRNo), 0), 3) AS FPQI
+      FROM FPAReport
+      WHERE Date >= @startDate AND Date <= @endDate
+      GROUP BY CAST(Date AS DATE), DATENAME(MONTH, Date);
+    `;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -84,38 +82,38 @@ export const getFpaMonthlyReport = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME = DATEADD(MINUTE, 330, @StartDate);
-    DECLARE @AdjustedEndDate DATETIME = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT
-      DATENAME(MONTH, CAST(Date AS DATE)) AS Month,
-      YEAR(CAST(Date AS DATE)) AS Year,
-      SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
-      SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
-      SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
-      COUNT(DISTINCT FGSRNo) AS [SampleInspected],
-      ROUND(
-        CAST(
-          ((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9) +
-           (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6) +
-           (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
-          ) AS FLOAT
-        ) / NULLIF(COUNT(DISTINCT FGSRNo), 0),
-      3) AS FPQI
-    FROM FPAReport
-    WHERE CAST(Date AS DATE) BETWEEN @AdjustedStartDate AND @AdjustedEndDate
-    GROUP BY 
-      DATENAME(MONTH, CAST(Date AS DATE)), 
-      YEAR(CAST(Date AS DATE));
-  `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+      SELECT
+        DATENAME(MONTH, CAST(Date AS DATE)) AS Month,
+        YEAR(CAST(Date AS DATE)) AS Year,
+        SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
+        SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
+        SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
+        COUNT(DISTINCT FGSRNo) AS [SampleInspected],
+        ROUND(
+          CAST(
+            ((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9) +
+             (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6) +
+             (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
+            ) AS FLOAT
+          ) / NULLIF(COUNT(DISTINCT FGSRNo), 0),
+        3) AS FPQI
+      FROM FPAReport
+      WHERE Date BETWEEN @startDate AND @endDate
+      GROUP BY 
+        DATENAME(MONTH, CAST(Date AS DATE)), 
+        YEAR(CAST(Date AS DATE));
+    `;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -133,35 +131,35 @@ export const getFpaYearlyReport = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME = DATEADD(MINUTE, 330, @StartDate);
-    DECLARE @AdjustedEndDate DATETIME = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT
-      YEAR(CAST(Date AS DATE)) AS Year,
-      SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
-      SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
-      SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
-      COUNT(DISTINCT FGSRNo) AS [SampleInspected],
-      ROUND(
-        CAST(
-          ((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9) +
-           (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6) +
-           (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
-          ) AS FLOAT
-        ) / NULLIF(COUNT(DISTINCT FGSRNo), 0),
-      3) AS FPQI
-    FROM FPAReport
-    WHERE CAST(Date AS DATE) BETWEEN @AdjustedStartDate AND @AdjustedEndDate
-    GROUP BY YEAR(CAST(Date AS DATE));
-  `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+      SELECT
+        YEAR(CAST(Date AS DATE)) AS Year,
+        SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS [NoOfCritical],
+        SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) AS [NoOfMajor],
+        SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) AS [NoOfMinor],
+        COUNT(DISTINCT FGSRNo) AS [SampleInspected],
+        ROUND(
+          CAST(
+            ((SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) * 9) +
+             (SUM(CASE WHEN Category = 'Major' THEN 1 ELSE 0 END) * 6) +
+             (SUM(CASE WHEN Category = 'Minor' THEN 1 ELSE 0 END) * 1)
+            ) AS FLOAT
+          ) / NULLIF(COUNT(DISTINCT FGSRNo), 0),
+        3) AS FPQI
+      FROM FPAReport
+      WHERE Date BETWEEN @startDate AND @endDate
+      GROUP BY YEAR(CAST(Date AS DATE));
+    `;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);

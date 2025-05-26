@@ -117,7 +117,10 @@ function StageHistoryReport() {
                   <tbody>
                     {stageHistoryData.length > 0 ? (
                       stageHistoryData.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-100 text-center">
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 text-center"
+                        >
                           <td className="px-1 py-1 border">{item.PSNO}</td>
                           <td className="px-1 py-1 border">
                             {item.StationCode}

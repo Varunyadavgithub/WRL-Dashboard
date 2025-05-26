@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import * as XLSX from "xlsx";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
@@ -10,6 +11,7 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const FiveDaysPlanning = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
 
   useEffect(() => {
     fetchFilesFromServer();
@@ -53,12 +55,30 @@ const FiveDaysPlanning = () => {
     }
   };
 
-  const handlePreviewFile = (file) => {
-    const fileUrl = encodeURIComponent(`http://localhost:3000${file.url}`);
-    window.open(
-      `https://docs.google.com/gview?url=${fileUrl}&embedded=true`,
-      "_blank"
-    );
+  const handlePreviewFile = async (file) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`http://localhost:3000${file.url}`, {
+        responseType: "arraybuffer",
+      });
+
+      const workbook = XLSX.read(response.data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+        blankrows: true,
+        defval: "", // preserve empty cells
+      });
+
+      setPreviewData(jsonData);
+      toast.success("File preview loaded");
+    } catch (error) {
+      console.error("Preview failed", error);
+      toast.error("Preview failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDownloadFile = async (file) => {
@@ -67,17 +87,15 @@ const FiveDaysPlanning = () => {
       const filename = file.url.split("/").pop();
 
       const res = await axios.get(`${baseURL}planing/download/${filename}`, {
-        responseType: "blob", // important for binary files
+        responseType: "blob",
       });
 
-      // Create a blob URL
       const blob = new Blob([res.data]);
       const downloadUrl = window.URL.createObjectURL(blob);
 
-      // Create and click a temporary anchor element
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute("download", file.filename); // set correct filename
+      link.setAttribute("download", file.filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -149,6 +167,37 @@ const FiveDaysPlanning = () => {
           </p>
         )}
       </div>
+
+      {/* Preview Table */}
+      {previewData && (
+        <div className="mt-10 bg-white shadow rounded">
+          <h2 className="text-xl font-bold mb-4 text-center text-blue-800">
+            Preview Data
+          </h2>
+          <table className="max-w-4xl border-collapse text-xs text-left text-gray-700">
+            <thead className="bg-blue-200 text-gray-900">
+              <tr>
+                {previewData[0]?.map((cell, index) => (
+                  <th key={index} className="border">
+                    {cell}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {previewData.slice(1).map((row, rowIndex) => (
+                <tr key={rowIndex} className="hover:bg-gray-50">
+                  {previewData[0].map((_, cellIndex) => (
+                    <td key={cellIndex} className="border">
+                      {row[cellIndex] || ""}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

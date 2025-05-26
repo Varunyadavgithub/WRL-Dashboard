@@ -228,7 +228,10 @@ const Overview = () => {
                     <tbody>
                       {productionData.length > 0 ? (
                         productionData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">{item.SrNo}</td>
                             <td className="px-1 py-1 border">
                               {item.Model_Name}
@@ -314,7 +317,10 @@ const Overview = () => {
                     <tbody>
                       {productionData.length > 0 ? (
                         productionData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">
                               {item.Model_Name}
                             </td>
