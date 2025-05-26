@@ -7,24 +7,18 @@ export const getFgUnloading = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
-
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT * 
-    FROM DispatchUnloading
-    WHERE DateTime >= @AdjustedStartDate AND DateTime <= @AdjustedEndDate;
-  `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+     SELECT * FROM DispatchUnloading WHERE DateTime >= @startDate AND DateTime <= @endDate;
+  `;
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -53,18 +47,16 @@ export const getFgDispatch = async (req, res) => {
   } else if (lowerStatus === "open") {
     tableName = "TempDispatch";
     statusValue = "Open";
-    additionalField = ""; // Scan_ID not needed
+    additionalField = "";
   } else {
     return res.status(400).send("Invalid status. Use 'Completed' or 'Open'.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
+    const query = `
     SELECT 
       DM.ModelName, 
       DM.FGSerialNo, 
@@ -80,16 +72,15 @@ export const getFgDispatch = async (req, res) => {
       ${additionalField}
     FROM ${tableName} DM
     INNER JOIN Tracking_Document TD ON DM.Document_ID = TD.Document_ID
-    WHERE DM.AddedOn BETWEEN @AdjustedStartDate AND @AdjustedEndDate
+    WHERE DM.AddedOn BETWEEN @startDate AND @endDate
       AND TD.LatestStatus = @StatusValue;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .input("StatusValue", sql.VarChar, statusValue)
       .query(query);
 

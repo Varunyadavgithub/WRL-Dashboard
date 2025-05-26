@@ -6,12 +6,12 @@ export const getDispatchMasterBySession = async (req, res) => {
     return res.status(400).send("Missing sessionId.");
   }
 
-  const query = `
+  try {
+    const query = `
     SELECT * FROM DispatchMaster
     WHERE Session_Id = @SessionId
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()

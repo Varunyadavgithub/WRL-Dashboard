@@ -9,8 +9,8 @@ export const getCurrentStageStatus = async (req, res) => {
       message: "Serial number is required",
     });
   }
-
-  let query = `
+  try {
+    let query = `
 WITH Psno AS (
     SELECT DocNo, Material, Serial, VSerial, Serial2, Alias 
     FROM MaterialBarcode 
@@ -43,7 +43,6 @@ ORDER BY
     A.ActivityOn DESC;
     `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool
       .request()

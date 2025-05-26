@@ -3,13 +3,13 @@ import { dbConfig1 } from "../config/db.js";
 
 // Fetches a list of active model variants from the Material table.
 export const getModelVariants = async (_, res) => {
-  const query = `
+  try {
+    const query = `
     SELECT Name AS MaterialName, MatCode 
     FROM Material 
     WHERE Category <> 0 AND model <> 0 AND type = 100 AND Status = 1;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool.request().query(query);
     res.json(result.recordset);
@@ -22,12 +22,12 @@ export const getModelVariants = async (_, res) => {
 
 // Fetches a list of all work stages from the WorkCenter table.
 export const getStageNames = async (_, res) => {
-  const query = `
+  try {
+    const query = `
     SELECT Name, StationCode 
     FROM WorkCenter;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool.request().query(query);
     res.json(result.recordset);

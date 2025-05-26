@@ -255,7 +255,10 @@ const FgDispatchTable = ({ data }) => {
                 <td className="px-1 py-1 border">{row.FGSerialNo}</td>
                 <td className="px-1 py-1 border">{row.AssetCode}</td>
                 <td className="px-1 py-1 border">{row.Session_ID}</td>
-                <td className="px-1 py-1 border">{row.AddedOn}</td>
+                <td className="px-1 py-1 border">
+                  {row.AddedOn &&
+                    row.AddedOn.replace("T", " ").replace("Z", "")}
+                </td>
                 <td className="px-1 py-1 border">{row.AddedBy}</td>
                 <td className="px-1 py-1 border">{row.Document_ID}</td>
                 <td className="px-1 py-1 border">{row.ModelCode}</td>

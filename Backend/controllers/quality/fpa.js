@@ -118,7 +118,8 @@ export const getAssetDetails = async (req, res) => {
     return res.status(400).send("Missing AssemblySerial.");
   }
 
-  const query = `
+  try {
+    const query = `
     SELECT 
       mb.Serial + '~' + mb.VSerial + '~' + m.Alias AS combinedserial
     FROM 
@@ -129,7 +130,6 @@ export const getAssetDetails = async (req, res) => {
       mb.Alias = @AssemblySerial;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
 
     const result = await pool
@@ -181,7 +181,8 @@ export const getFPQIDetails = async (req, res) => {
     now.getMonth() + 1
   ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-  const query = `
+  try {
+    const query = `
     SELECT 
       COUNT(DISTINCT FGSRNo) AS TotalFGSRNo,
       SUM(CASE WHEN Category = 'Critical' THEN 1 ELSE 0 END) AS NoOfCritical,
@@ -196,7 +197,6 @@ export const getFPQIDetails = async (req, res) => {
     WHERE Date Between @startDate and @endDate;
   `;
 
-  try {
     const pool = await sql.connect(dbConfig1);
 
     const result = await pool
@@ -251,11 +251,12 @@ export const getFpaDefect = async (req, res) => {
   const reportDateStr = `${now.getFullYear()}-${String(
     now.getMonth() + 1
   ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const query = `
+
+  try {
+    const query = `
     Select * from FPAReport where Date Between @StartDate and @EndDate
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -273,11 +274,11 @@ export const getFpaDefect = async (req, res) => {
 };
 
 export const getDefectCategory = async (req, res) => {
-  const query = `
+  try {
+    const query = `
     Select Code, Name from DefectCodeMaster
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool.request().query(query);
 
@@ -301,13 +302,13 @@ export const addDefect = async (req, res) => {
     country,
   } = req.body;
 
-  const query = `
+  try {
+    const query = `
     INSERT INTO FPAReport
     (Date, Model, Shift, FGSRNo, Country, Category, AddDefect, Remark)
     VALUES (@Date, @Model, @Shift, @FGSRNo, @Country, @Category, @AddDefect, @Remark)
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool.request();
 

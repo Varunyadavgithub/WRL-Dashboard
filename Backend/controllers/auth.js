@@ -17,10 +17,21 @@ export const login = async (req, res) => {
     const result = await pool
       .request()
       .input("empcod", sql.VarChar, empcod)
-      .input("password", sql.VarChar, password)
-      .query(
-        "SELECT UserCode, UserName, UserID, Password FROM Users WHERE UserID = @empcod AND Password = @password"
-      );
+      .input("password", sql.VarChar, password).query(`
+        SELECT 
+          U.UserCode, 
+          U.UserName, 
+          U.UserID, 
+          U.Password, 
+          U.UserRole, 
+          R.RoleName 
+        FROM 
+          Users U
+        JOIN 
+          UserRoles R ON U.UserRole = R.RoleCode
+        WHERE 
+          U.UserID = @empcod AND U.Password = @password
+  `);
     await pool.close();
 
     const user = result.recordset[0];
@@ -38,7 +49,7 @@ export const login = async (req, res) => {
         id: user.UserID,
         name: user.UserName,
         usercode: user.UserCode,
-        // role: user.Role || "User",
+        role: user.UserRole,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
@@ -59,7 +70,7 @@ export const login = async (req, res) => {
         id: user.UserID,
         name: user.UserName,
         usercode: user.UserCode,
-        // role: user.Role || "User",
+        role: user.RoleName,
       },
     });
   } catch (error) {

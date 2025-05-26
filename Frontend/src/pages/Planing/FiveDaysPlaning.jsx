@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
 import Button from "../../components/common/Button";
+import { useSelector } from "react-redux";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const FiveDaysPlanning = () => {
+  const { user } = useSelector((store) => store.auth);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState(null);
@@ -151,12 +153,29 @@ const FiveDaysPlanning = () => {
                   >
                     Preview
                   </Button>
-                  <Button
-                    onClick={() => handleDownloadFile(file)}
-                    className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
-                  >
-                    Download
-                  </Button>
+                  {user.role === "Admin" ? (
+                    <>
+                      <Button
+                        onClick={() => handleDownloadFile(file)}
+                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
+                      >
+                        Download
+                      </Button>
+                      <Button
+                        onClick={"Handle Delete File"}
+                        className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition text-center"
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => handleDownloadFile(file)}
+                      className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
+                    >
+                      Download
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

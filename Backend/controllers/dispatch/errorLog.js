@@ -7,38 +7,31 @@ export const getDispatchErrorLog = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
-
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    SELECT 
-    [Session_ID], 
-    [FGSerialNo], 
-    [AssetNo], 
-    [ModelName], 
-    [ModelCode],
-    [ErrorMessage],
-    b.ErrorName, 
-    [ErrorOn]  
-FROM 
-    [DispatchErrorLog] a 
-INNER JOIN 
-    errormaster b 
-ON 
-    a.ErrorID = b.ErrorID 
-WHERE 
-    ErrorOn >= @AdjustedStartDate AND ErrorOn <= @AdjustedEndDate;
- `;
-
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
+    const query = `
+      SELECT 
+        [Session_ID], 
+        [FGSerialNo], 
+        [AssetNo], 
+        [ModelName], 
+        [ModelCode],
+        [ErrorMessage],
+        b.ErrorName, 
+        [ErrorOn]  
+      FROM [DispatchErrorLog] a 
+      INNER JOIN errormaster b 
+        ON a.ErrorID = b.ErrorID 
+      WHERE ErrorOn BETWEEN @startDate AND @endDate;
+    `;
+
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);

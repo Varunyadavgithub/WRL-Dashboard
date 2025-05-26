@@ -8,17 +8,15 @@ export const getDispatchVehicleUPH = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
+    const query = `
     WITH UniqueSessions AS (
     SELECT DISTINCT session_ID
     FROM DispatchMaster
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
 ),
 ProductionDetails AS (
     SELECT 
@@ -43,12 +41,11 @@ FROM HourlySummary
 ORDER BY TIMEHOUR;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -66,18 +63,16 @@ export const getDispatchVehicleSummary = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
+    const query = `
     WITH UniqueSessions AS (
     -- Get distinct session_IDs within the given time range
     SELECT DISTINCT session_ID
     FROM DispatchMaster
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
 ),
 ProductionDetails AS (
     -- Assign a single TIMEHOUR to each session_ID
@@ -96,7 +91,7 @@ SessionSummary AS (
         COUNT(*) AS Model_Count  -- Count of models per session
     FROM DispatchMaster dm
     INNER JOIN ProductionDetails pd ON dm.session_ID = pd.session_ID
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
     GROUP BY pd.TIMEHOUR, dm.session_ID
 ),
 TotalSummary AS (
@@ -129,13 +124,11 @@ SELECT HOUR_NUMBER, TIMEHOUR, session_ID, Model_Count FROM (
 ) AS FinalResult
 ORDER BY SortOrder, TIMEHOUR, session_ID;
   `;
-
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -154,19 +147,17 @@ export const getDispatchModelCount = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-   WITH ProductionDetails AS (
+    const query = `
+      WITH ProductionDetails AS (
     -- Extract TIMEHOUR for all records within the time range
     SELECT 
         DATEPART(HOUR, AddedOn) AS TIMEHOUR  
     FROM DispatchMaster
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
 ),
 Hours AS (
     -- Generate a dynamic list of hours from available data
@@ -190,12 +181,11 @@ FROM HourlySummary
 ORDER BY TIMEHOUR;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -213,20 +203,18 @@ export const getDispatchModelSummary = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    WITH ProductionDetails AS (
+    const query = `
+      WITH ProductionDetails AS (
     -- Extract TIMEHOUR and ModelName for all records within the time range
     SELECT 
         DATEPART(HOUR, AddedOn) AS TIMEHOUR,  
         ModelName
     FROM DispatchMaster
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
 ),
 HourlySummary AS (
     -- Aggregate counts per hour and per ModelName
@@ -244,14 +232,13 @@ SELECT
     Loading_Count AS COUNT
 FROM HourlySummary
 ORDER BY TIMEHOUR, ModelName;   
-  `;
+    `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -270,19 +257,17 @@ export const getDispatchCategoryModelCount = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
+    const query = `
      WITH ProductionDetails AS (
      -- Extract TIMEHOUR for all records within the time range
      SELECT 
          DATEPART(HOUR, AddedOn) AS TIMEHOUR  
      FROM DispatchMaster
-     WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+     WHERE AddedOn >= @startDate AND AddedOn <= @endDate
  ),
  Hours AS (
      -- Generate a dynamic list of hours from available data
@@ -306,12 +291,11 @@ export const getDispatchCategoryModelCount = async (req, res) => {
  ORDER BY TIMEHOUR;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -329,19 +313,17 @@ export const getDispatchCategorySummary = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
+  try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
-    -- Adjust to IST (UTC +5:30)
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
+    const query = `
      WITH ProductionDetails AS (
     -- Extract ModelName for all records within the time range
     SELECT  
         ModelName
     FROM DispatchMaster
-    WHERE AddedOn >= @AdjustedStartDate AND AddedOn <= @AdjustedEndDate
+    WHERE AddedOn >= @startDate AND AddedOn <= @endDate
 ),
 ModelSummary AS (
     -- Aggregate counts per ModelName
@@ -359,12 +341,11 @@ FROM ModelSummary
 ORDER BY ModelName;
   `;
 
-  try {
     const pool = await new sql.ConnectionPool(dbConfig2).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);

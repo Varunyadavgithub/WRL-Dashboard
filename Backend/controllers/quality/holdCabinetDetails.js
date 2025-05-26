@@ -7,8 +7,10 @@ export const getDispatchHoldDetails = async (req, res) => {
     return res.status(400).send("Missing startDate or endDate.");
   }
 
-  let statusCondition = "";
+  const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+  const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
+  let statusCondition = "";
   if (status) {
     const lowerStatus = status.toLowerCase();
     if (lowerStatus === "hold") {
@@ -20,43 +22,35 @@ export const getDispatchHoldDetails = async (req, res) => {
   }
 
   const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME;
-
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
     SELECT
-        m.Name AS ModelNo,
-        dh.Serial AS FGSerialNo,
-        dh.DefectCode AS HoldReason,
-        dh.HoldDatetime AS HoldDate,
-        u.UserName AS HoldBy,
-        DATEDIFF(DAY, dh.HoldDateTime, dh.ReleasedDateTime) AS DaysOnHold,
-        ISNULL(dh.Action, 'Not Released') AS CorrectiveAction,
-        dh.ReleasedDateTime AS ReleasedOn,
-        us.UserName AS ReleasedBy,
-        CASE
-            WHEN dh.ReleasedDateTime IS NULL THEN 'Hold'
-            ELSE 'Release'
-        END AS Status
-    FROM
-        DispatchHold AS dh
-        INNER JOIN MaterialBarcode mb ON mb.Serial = dh.Serial
-        INNER JOIN Material m ON m.MatCode = dh.Material
-        LEFT JOIN Users u ON u.UserCode = dh.HoldUserCode
-        LEFT JOIN Users us ON us.UserCode = dh.ReleasedUserCode
-    WHERE
-        dh.HoldDatetime >= @AdjustedStartDate
-        AND dh.HoldDatetime <= @AdjustedEndDate
-        ${statusCondition};
+      m.Name AS ModelNo,
+      dh.Serial AS FGSerialNo,
+      dh.DefectCode AS HoldReason,
+      dh.HoldDatetime AS HoldDate,
+      u.UserName AS HoldBy,
+      DATEDIFF(DAY, dh.HoldDateTime, dh.ReleasedDateTime) AS DaysOnHold,
+      ISNULL(dh.Action, 'Not Released') AS CorrectiveAction,
+      dh.ReleasedDateTime AS ReleasedOn,
+      us.UserName AS ReleasedBy,
+      CASE
+        WHEN dh.ReleasedDateTime IS NULL THEN 'Hold'
+        ELSE 'Release'
+      END AS Status
+    FROM DispatchHold AS dh
+    INNER JOIN MaterialBarcode mb ON mb.Serial = dh.Serial
+    INNER JOIN Material m ON m.MatCode = dh.Material
+    LEFT JOIN Users u ON u.UserCode = dh.HoldUserCode
+    LEFT JOIN Users us ON us.UserCode = dh.ReleasedUserCode
+    WHERE dh.HoldDatetime BETWEEN @startDate AND @endDate
+    ${statusCondition};
   `;
 
   try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, new Date(startDate))
-      .input("EndDate", sql.DateTime, new Date(endDate))
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);

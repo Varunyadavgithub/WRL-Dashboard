@@ -4,7 +4,6 @@ import {
   FaIndustry,
   FaClipboardCheck,
   FaTruckMoving,
-  FaSlidersH,
   FaChevronDown,
   FaChevronUp,
   FaBars,
@@ -15,67 +14,65 @@ import {
 // Define menu configurations
 const MENU_CONFIG = [
   {
-    key: 'production',
+    key: "production",
     icon: FaIndustry,
-    label: 'Production',
+    label: "Production",
     items: [
-      { path: '/production/overview', label: 'Production Report' },
-      { path: '/production/component-traceability-report', label: 'Component Traceability Report' },
-      { path: '/production/hourly-report', label: 'Hourly Report' },
-      { path: '/production/line-hourly-report', label: 'Line Hourly Report' },
-      { path: '/production/consolidated-report', label: 'Consolidated Report' },
-      { path: '/production/stop-loss-report', label: 'Stop Loss Report' },
-      { path: '/production/stage-history-report', label: 'Stage History Report' },
-      { path: '/production/model-name-update', label: 'Model Name Update' },
-      { path: '/production/total-production', label: 'Total Production' },
-    ]
+      { path: "/production/overview", label: "Production Report" },
+      {
+        path: "/production/component-traceability-report",
+        label: "Component Traceability Report",
+      },
+      { path: "/production/hourly-report", label: "Hourly Report" },
+      { path: "/production/line-hourly-report", label: "Line Hourly Report" },
+      {
+        path: "/production/stage-history-report",
+        label: "Stage History Report",
+      },
+      { path: "/production/model-name-update", label: "Model Name Update" },
+      { path: "/production/total-production", label: "Total Production" },
+    ],
   },
   {
-    key: 'quality',
+    key: "quality",
     icon: FaClipboardCheck,
-    label: 'Quality',
+    label: "Quality",
     items: [
-      { path: '/quality/rework-report', label: 'Rework Report' },
-      { path: '/quality/brazing-report', label: 'Brazing Report' },
-      { path: '/quality/gas-charging-report', label: 'Gas Charging Report' },
-      { path: '/quality/est-report', label: 'EST Report' },
-      { path: '/quality/mft-report', label: 'MFT Report' },
-      { path: '/quality/fpa', label: 'FPA' },
-      { path: '/quality/fpa-report', label: 'FPA Report' },
-      { path: '/quality/dispatch-hold', label: 'Dispatch Hold' },
-      { path: '/quality/hold-cabinate-details', label: 'Hold Cabinet Details' },
-    ]
+      { path: "/quality/rework-report", label: "Rework Report" },
+      { path: "/quality/brazing-report", label: "Brazing Report" },
+      { path: "/quality/gas-charging-report", label: "Gas Charging Report" },
+      { path: "/quality/est-report", label: "EST Report" },
+      { path: "/quality/mft-report", label: "MFT Report" },
+      { path: "/quality/fpa", label: "FPA" },
+      { path: "/quality/fpa-report", label: "FPA Report" },
+      { path: "/quality/dispatch-hold", label: "Dispatch Hold" },
+      { path: "/quality/hold-cabinate-details", label: "Hold Cabinet Details" },
+    ],
   },
   {
-    key: 'dispatch',
+    key: "dispatch",
     icon: FaTruckMoving,
-    label: 'Dispatch',
+    label: "Dispatch",
     items: [
-      { path: '/dispatch/dispatch-performance-report', label: 'Dispatch Performance Report' },
-      { path: '/dispatch/dispatch-report', label: 'Dispatch Report' },
-      { path: '/dispatch/fg-casting', label: 'FG Casting' },
-      { path: '/dispatch/gate-entry', label: 'Gate Entry' },
-      { path: '/dispatch/error-log', label: 'Error Log' },
-    ]
+      {
+        path: "/dispatch/dispatch-performance-report",
+        label: "Dispatch Performance Report",
+      },
+      { path: "/dispatch/dispatch-report", label: "Dispatch Report" },
+      { path: "/dispatch/fg-casting", label: "FG Casting" },
+      { path: "/dispatch/gate-entry", label: "Gate Entry" },
+      { path: "/dispatch/error-log", label: "Error Log" },
+    ],
   },
   {
-    key: 'settings',
-    icon: FaSlidersH,
-    label: 'Settings',
-    items: [
-      { path: '/settings/general', label: 'General' },
-      { path: '/settings/security', label: 'Security' },
-    ]
-  },
-  {
-    key: 'planing',
+    key: "planing",
     icon: FaClipboardList,
-    label: 'Planing',
+    label: "Planing",
     items: [
-      { path: '/planing/production-planing', label: 'Production Planing' },
-      { path: '/planing/5-days-planing', label: '5 Days Planing' },
-    ]
-  }
+      { path: "/planing/production-planing", label: "Production Planing" },
+      { path: "/planing/5-days-planing", label: "5 Days Planing" },
+    ],
+  },
 ];
 
 const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
@@ -88,11 +85,14 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
   const toggleMenu = (menu) => {
     setExpandedMenus((prevState) => {
       // Create a new state object with all menus collapsed
-      const newState = Object.keys(prevState).reduce((acc, key) => ({
-        ...acc,
-        [key]: false
-      }), {});
-      
+      const newState = Object.keys(prevState).reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: false,
+        }),
+        {}
+      );
+
       // Toggle the selected menu
       newState[menu] = !prevState[menu];
       return newState;
@@ -109,7 +109,9 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
           <li key={index}>
             <Link
               to={item.path}
-              className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(item.path)}`}
+              className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
+                item.path
+              )}`}
               onClick={() => window.scrollTo(0, 0)}
             >
               {item.label}
@@ -122,7 +124,7 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
 
   const renderMenuSection = (menu) => {
     const MenuIcon = menu.icon;
-    
+
     return (
       <li key={menu.key}>
         <div

@@ -14,14 +14,14 @@ export const getModlelName = async (req, res) => {
     return res.status(400).json({ error: "Missing AssemblySerial." });
   }
 
-  const query = `
+  try {
+    const query = `
     SELECT m.Name AS combinedserial
     FROM MaterialBarcode AS mb
     INNER JOIN Material AS m ON m.MatCode = mb.Material
     WHERE mb.Serial = @AssemblySerial;
   `;
 
-  try {
     const pool = await sql.connect(dbConfig1);
 
     const result = await pool

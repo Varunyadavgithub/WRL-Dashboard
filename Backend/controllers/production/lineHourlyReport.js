@@ -10,7 +10,8 @@ const replacePlaceholders = (query, startTime, endTime) => {
 // Final Line
 export const getFinalHPFrz = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
+  try {
+    const query = `
     WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
@@ -36,7 +37,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
   `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -50,7 +50,10 @@ ORDER BY su.TIMEHOUR;
 
 export const getFinalHPChoc = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `WITH ProductionDetails AS (
+
+  try {
+    const query = `
+    WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
            ActivityType, b.Type 
@@ -75,7 +78,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
 `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -89,7 +91,9 @@ ORDER BY su.TIMEHOUR;
 
 export const getFinalHPSUS = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `WITH ProductionDetails AS (
+
+  try {
+    const query = `WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
            ActivityType, b.Type 
@@ -112,7 +116,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
 `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -126,7 +129,9 @@ ORDER BY su.TIMEHOUR;
 
 export const getFinalHPCAT = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
+
+  try {
+    const query = `
     SELECT MC.Name AS [Category], COUNT(*) AS [Count]
 FROM MaterialBarcode AS MB
 INNER JOIN Material AS M ON MB.Material = M.MatCode
@@ -139,7 +144,6 @@ AND PA.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
 AND PA.ActivityType = '5'
 GROUP BY MC.Name;
   `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -154,7 +158,9 @@ GROUP BY MC.Name;
 // Post Forming
 export const getPostHPFrzA = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
+
+  try {
+    const query = `
   WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
@@ -178,7 +184,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
   `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -192,7 +197,9 @@ ORDER BY su.TIMEHOUR;
 
 export const getPostHPFrzB = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
+
+  try {
+    const query = `
   WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
@@ -216,7 +223,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
   `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -230,7 +236,9 @@ ORDER BY su.TIMEHOUR;
 
 export const getPostHPSUS = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
+
+  try {
+    const query = `
     WITH ProductionDetails AS (
     SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
@@ -254,7 +262,6 @@ SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_
 FROM Summary su 
 ORDER BY su.TIMEHOUR;
   `;
-  try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -268,21 +275,21 @@ ORDER BY su.TIMEHOUR;
 
 export const getPostHPCAT = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = `
-    SELECT MC.Name AS [Category], COUNT(*) AS [Count]
-FROM MaterialBarcode AS MB
-INNER JOIN Material AS M ON MB.Material = M.MatCode
-INNER JOIN MaterialCategory AS MC ON M.Category = MC.CategoryCode
-INNER JOIN ProcessActivity AS PA ON MB.DocNo = PA.PSNo
-WHERE MB.Type IN (100, 400)
-AND MB.Status <> 99
-AND PA.StationCode IN (1220003, 1220004, 1230012)
-AND PA.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
-AND PA.ActivityType = '5'
-GROUP BY MC.Name;
 
-  `;
   try {
+    const query = `
+        SELECT MC.Name AS [Category], COUNT(*) AS [Count]
+          FROM MaterialBarcode AS MB
+            INNER JOIN Material AS M ON MB.Material = M.MatCode
+            INNER JOIN MaterialCategory AS MC ON M.Category = MC.CategoryCode
+            INNER JOIN ProcessActivity AS PA ON MB.DocNo = PA.PSNo
+          WHERE MB.Type IN (100, 400)
+            AND MB.Status <> 99
+            AND PA.StationCode IN (1220003, 1220004, 1230012)
+            AND PA.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
+            AND PA.ActivityType = '5'
+        GROUP BY MC.Name;
+    `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -297,8 +304,9 @@ GROUP BY MC.Name;
 // Forming
 export const getFormingHpFomA = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = ``;
   try {
+    const query = ``;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -312,8 +320,9 @@ export const getFormingHpFomA = async (req, res) => {
 
 export const getFormingHpFomB = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = ``;
   try {
+    const query = ``;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
@@ -327,8 +336,9 @@ export const getFormingHpFomB = async (req, res) => {
 
 export const getFormingHpFomCat = async (req, res) => {
   const { StartTime, EndTime } = req.query;
-  const query = ``;
   try {
+    const query = ``;
+
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
