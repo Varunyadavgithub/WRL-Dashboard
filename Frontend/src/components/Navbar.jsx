@@ -48,7 +48,13 @@ const NavBar = () => {
             <div className="text-black font-semibold font-playfair">
               {user.name}
             </div>
-            <div className="text-gray-400 text-sm">{user.role}</div>
+            <div
+              className={`${
+                user.role === "Admin" ? "text-red-500" : "text-gray-400"
+              } text-sm`}
+            >
+              {user.role}
+            </div>
           </div>
 
           {/* Logout Icon Button */}

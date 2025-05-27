@@ -28,8 +28,10 @@ import ErrorLog from "../pages/Dispatch/ErrorLog";
 
 import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
+import { useSelector } from "react-redux";
 
 function MainContent() {
+  const { user } = useSelector((store) => store.auth);
   return (
     <div className="flex-1 p-4 min-h-screen overflow-auto">
       <Routes>

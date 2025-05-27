@@ -17,6 +17,10 @@ const ComponentTraceabilityReport = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [traceabilityData, setTraceabilityData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(1000);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchModelVariants = async () => {
     try {
@@ -31,7 +35,7 @@ const ComponentTraceabilityReport = () => {
     }
   };
 
-  const fetchTraceabilityData = async () => {
+  const fetchTraceabilityData = async (pageNumber = 1) => {
     if (!startTime || !endTime) {
       toast.error("Please select Time Range.");
       return;
@@ -43,13 +47,22 @@ const ComponentTraceabilityReport = () => {
         startTime,
         endTime,
         model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
+        page: pageNumber,
+        limit,
       };
+
       const res = await axios.get(`${baseURL}prod/component-traceability`, {
         params,
       });
-      setTraceabilityData(res?.data?.result);
+      console.log(res);
+      if (res?.data?.success) {
+        setTraceabilityData(res?.data?.data);
+        setTotalCount(res?.data?.totalCount);
+        setTotalPages(Math.ceil(res?.data?.totalCount / limit));
+        setPage(pageNumber);
+      }
     } catch (error) {
-      console.error("Failed to fetch production data:", error);
+      console.error("Failed to fetch component traceability data:", error);
     } finally {
       setLoading(false);
     }
@@ -59,6 +72,17 @@ const ComponentTraceabilityReport = () => {
     fetchModelVariants();
   }, []);
 
+  const handlePrevPage = () => {
+    if (page > 1) {
+      fetchTraceabilityData(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      fetchTraceabilityData(page + 1);
+    }
+  };
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
       <Title title="Component Traceability Report" align="center" />
@@ -105,7 +129,7 @@ const ComponentTraceabilityReport = () => {
               bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
               textColor={loading ? "text-white" : "text-black"}
               className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              onClick={() => fetchTraceabilityData()}
+              onClick={() => fetchTraceabilityData(1)}
               disabled={loading}
             >
               Query
@@ -118,10 +142,7 @@ const ComponentTraceabilityReport = () => {
 
             {/* Count */}
             <div className="mt-4 text-left font-bold text-lg">
-              COUNT:{" "}
-              <span className="text-blue-700">
-                {traceabilityData.length || 0}
-              </span>
+              COUNT: <span className="text-blue-700">{totalCount || 0}</span>
             </div>
           </div>
         </div>
@@ -129,6 +150,30 @@ const ComponentTraceabilityReport = () => {
 
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
+        {/* Pagination Controls */}
+        <div className="flex justify-center items-center gap-4 my-4">
+          <Button
+            onClick={handlePrevPage}
+            disabled={page === 1 || loading}
+            bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
+            textColor="text-white"
+          >
+            Previous
+          </Button>
+          <span className="font-semibold">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            onClick={handleNextPage}
+            disabled={page === totalPages || loading}
+            bgColor={
+              page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
+            }
+            textColor="text-white"
+          >
+            Next
+          </Button>
+        </div>
         <div className="w-full bg-white border border-gray-300 rounded-md p-4">
           {/* Data Table */}
           {loading ? (

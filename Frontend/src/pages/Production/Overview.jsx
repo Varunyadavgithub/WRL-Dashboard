@@ -20,6 +20,10 @@ const Overview = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [productionData, setProductionData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(1000);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchModelVariants = async () => {
     try {
@@ -47,17 +51,18 @@ const Overview = () => {
     }
   };
 
-  const fetchProductionData = async () => {
+  const fetchProductionData = async (pageNumber = 1) => {
     if (startTime && endTime && (selectedVariant || selectedStage)) {
-      setLoading(true);
       try {
+        setLoading(true);
         const params = {
           startTime,
           endTime,
           stationCode: selectedStage?.value || null,
+          page: pageNumber,
+          limit,
         };
 
-        // Add model to params only if a variant is selected
         if (selectedVariant) {
           params.model = parseInt(selectedVariant.value, 10);
         } else {
@@ -65,7 +70,15 @@ const Overview = () => {
         }
 
         const res = await axios.get(`${baseURL}prod/fgdata`, { params });
-        setProductionData(res.data);
+
+        console.log(res);
+
+        if (res?.data?.success) {
+          setProductionData(res?.data?.data);
+          setTotalCount(res?.data?.totalCount);
+          setTotalPages(Math.ceil(res?.data?.totalCount / limit));
+          setPage(pageNumber);
+        }
       } catch (error) {
         console.error("Failed to fetch production data:", error);
       } finally {
@@ -82,7 +95,7 @@ const Overview = () => {
   }, []);
 
   const handleFgData = () => {
-    fetchProductionData();
+    fetchProductionData(1);
   };
 
   const handleClearFilters = () => {
@@ -91,15 +104,27 @@ const Overview = () => {
     setStartTime("");
     setEndTime("");
     setProductionData([]);
+    setPage(1);
+    setTotalPages(1);
   };
 
+  const handlePrevPage = () => {
+    if (page > 1) {
+      fetchProductionData(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      fetchProductionData(page + 1);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
       <Title title="Production Overview" align="center" />
 
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        {/* First Row */}
         <div className="flex flex-wrap gap-2">
           <SelectField
             label="Model Variant"
@@ -126,7 +151,6 @@ const Overview = () => {
           />
         </div>
 
-        {/* Second Row */}
         <div className="flex flex-wrap gap-2">
           <DateTimePicker
             label="Start Time"
@@ -142,7 +166,6 @@ const Overview = () => {
           />
         </div>
 
-        {/* Third Row */}
         <div className="flex flex-wrap gap-2">
           <div>
             <InputField
@@ -169,10 +192,8 @@ const Overview = () => {
           </div>
         </div>
 
-        {/* Count */}
         <div className="mt-4 text-left font-bold text-lg">
-          COUNT:{" "}
-          <span className="text-blue-700">{productionData?.length || 0}</span>
+          COUNT: <span className="text-blue-700">{totalCount || 0}</span>
         </div>
       </div>
 
@@ -182,8 +203,32 @@ const Overview = () => {
           <span className="text-xl font-semibold">Summary</span>
         </div>
 
+        {/* Pagination Controls */}
+        <div className="flex justify-center items-center gap-4 my-4">
+          <Button
+            onClick={handlePrevPage}
+            disabled={page === 1 || loading}
+            bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
+            textColor="text-white"
+          >
+            Previous
+          </Button>
+          <span className="font-semibold">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            onClick={handleNextPage}
+            disabled={page === totalPages || loading}
+            bgColor={
+              page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
+            }
+            textColor="text-white"
+          >
+            Next
+          </Button>
+        </div>
         <div className="bg-white border border-gray-300 rounded-md p-2">
-          <div className="flex flex-col md:flex-row items-start gap-1">
+          <div className="flex flex-wrap gap-1">
             {/* Left Side - Detailed Table */}
             <div className="w-full md:flex-1">
               {loading ? (
@@ -279,7 +324,6 @@ const Overview = () => {
 
             {/* Right Side - Controls and Summary */}
             <div className="w-full md:w-[30%] flex flex-col gap-2 overflow-x-hidden">
-              {/* Filter + Export Buttons */}
               <div className="flex flex-wrap gap-2 items-center justify-center my-4">
                 <Button
                   bgColor="bg-white"
@@ -292,7 +336,6 @@ const Overview = () => {
                 <ExportButton />
               </div>
 
-              {/* Summary Table */}
               <div className="w-full max-h-[500px] overflow-x-auto">
                 {loading ? (
                   <Loader />
