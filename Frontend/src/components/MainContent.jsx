@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "../pages/Home";
 
@@ -29,6 +29,7 @@ import ErrorLog from "../pages/Dispatch/ErrorLog";
 import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
 import { useSelector } from "react-redux";
+import NotFound from "./common/NotFound";
 
 function MainContent() {
   const { user } = useSelector((store) => store.auth);
@@ -36,7 +37,6 @@ function MainContent() {
     <div className="flex-1 p-4 min-h-screen overflow-auto">
       <Routes>
         <Route path="/" index element={<Home />} />
-
         {/* Production */}
         <Route path="/production/overview" element={<ProductionOverview />} />
         <Route
@@ -60,7 +60,6 @@ function MainContent() {
           path="/production/total-production"
           element={<TotalProduction />}
         />
-
         {/* Quality */}
         <Route path="/quality/rework-report" element={<ReworkReport />} />
         <Route path="/quality/brazing-report" element={<BrazingReport />} />
@@ -77,7 +76,6 @@ function MainContent() {
           path="/quality/hold-cabinate-details"
           element={<HoldCabinateDetails />}
         />
-
         {/* Dispatch */}
         <Route
           path="/dispatch/dispatch-performance-report"
@@ -87,13 +85,13 @@ function MainContent() {
         <Route path="/dispatch/fg-casting" element={<FGCasting />} />
         <Route path="/dispatch/gate-entry" element={<GateEntry />} />
         <Route path="/dispatch/error-log" element={<ErrorLog />} />
-
         {/* Planing */}
         <Route
           path="/planing/production-planing"
           element={<ProductionPlaning />}
         />
         <Route path="/planing/5-days-planing" element={<FiveDaysPlaning />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
