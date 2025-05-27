@@ -17,6 +17,10 @@ const TotalProduction = () => {
   const [variants, setVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [totalProductionData, setTotalProductionData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(1000);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchModelVariants = async () => {
     try {
@@ -35,7 +39,7 @@ const TotalProduction = () => {
     fetchModelVariants();
   }, []);
 
-  const fetchTotalProductionData = async () => {
+  const fetchTotalProductionData = async (pageNumber = 1) => {
     if (!startTime || !endTime) {
       toast.error("Please select Time Range.");
       return;
@@ -47,6 +51,8 @@ const TotalProduction = () => {
       const params = {
         startDate: startTime,
         endDate: endTime,
+        page: pageNumber,
+        limit,
       };
 
       if (selectedVariant) {
@@ -56,8 +62,13 @@ const TotalProduction = () => {
       }
 
       const res = await axios.get(`${baseURL}prod/barcode-details`, { params });
-      console.log(res);
-      setTotalProductionData(res.data);
+
+      if (res?.data?.success) {
+        setTotalProductionData(res?.data?.data);
+        setTotalCount(res?.data?.totalCount);
+        setTotalPages(Math.ceil(res?.data?.totalCount / limit));
+        setPage(pageNumber);
+      }
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -84,6 +95,17 @@ const TotalProduction = () => {
     return counts;
   };
 
+  const handlePrevPage = () => {
+    if (page > 1) {
+      fetchTotalProductionData(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      fetchTotalProductionData(page + 1);
+    }
+  };
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
       <Title title="Total Production" align="center" />
@@ -130,7 +152,7 @@ const TotalProduction = () => {
               bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
               textColor={loading ? "text-white" : "text-black"}
               className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              onClick={() => fetchTotalProductionData()}
+              onClick={() => fetchTotalProductionData(1)}
               disabled={loading}
             >
               Query
@@ -140,10 +162,7 @@ const TotalProduction = () => {
 
           {/* Count */}
           <div className="mt-4 text-left font-bold text-lg">
-            COUNT:{" "}
-            <span className="text-blue-700">
-              {totalProductionData.length || 0}{" "}
-            </span>
+            COUNT: <span className="text-blue-700">{totalCount || 0} </span>
           </div>
         </div>
       </div>
@@ -151,6 +170,30 @@ const TotalProduction = () => {
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="bg-white border border-gray-300 rounded-md p-4">
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center gap-4 my-4">
+            <Button
+              onClick={handlePrevPage}
+              disabled={page === 1 || loading}
+              bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
+              textColor="text-white"
+            >
+              Previous
+            </Button>
+            <span className="font-semibold">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              onClick={handleNextPage}
+              disabled={page === totalPages || loading}
+              bgColor={
+                page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
+              }
+              textColor="text-white"
+            >
+              Next
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Table 1 */}
             <div className="max-h-[600px] overflow-x-auto w-full">

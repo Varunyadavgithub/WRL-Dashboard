@@ -1,4 +1,4 @@
-// import sql, { dbConfig1 } from "../../config/db.js";
+import sql, { dbConfig1 } from "../../config/db.js";
 
 // export const fetchFGData = async (req, res) => {
 //   const { startTime, endTime, model, stationCode } = req.query;
@@ -88,8 +88,6 @@
 //     res.status(500).json({ success: false, error: err.message });
 //   }
 // };
-
-import sql, { dbConfig1 } from "../../config/db.js";
 
 export const fetchFGData = async (req, res) => {
   const {

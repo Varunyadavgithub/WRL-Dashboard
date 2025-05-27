@@ -1,13 +1,12 @@
+import { useState } from "react";
+import axios from "axios";
 import Title from "../../components/common/Title";
 import SelectField from "../../components/common/SelectField";
-import Button from "../../components/common/Button";
 import DateTimePicker from "../../components/common/DateTimePicker";
-import { useState } from "react";
-import ExportButton from "../../components/common/ExportButton";
+import Button from "../../components/common/Button";
 import Loader from "../../components/common/Loader";
-import axios from "axios";
 import toast from "react-hot-toast";
-// import axios from "axios";
+import ExportButton from "../../components/common/ExportButton";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -31,8 +30,15 @@ const DispatchReport = () => {
   const [status, setStatus] = useState(Status[0]);
   const [fgUnloadingData, setFgUnloadingData] = useState([]);
   const [fgDispatchData, setFgDispatchData] = useState([]);
+  const [pageUnloading, setPageUnloading] = useState(1);
+  const [pageDispatch, setPageDispatch] = useState(1);
+  const [totalUnloadingPages, setTotalUnloadingPages] = useState(1);
+  const [totalDispatchPages, setTotalDispatchPages] = useState(1);
+  const [limit] = useState(1000);
+  const [totalFgUnloadingDataCount, setTotalFgUnloadingDataCount] = useState(0);
+  const [totalFgDispatchDataCount, setTotalFgDispatchDataCount] = useState(0);
 
-  const fetchFgUnloadingData = async () => {
+  const fetchFgUnloadingData = async (pageNumber = 1) => {
     if (!startTime || !endTime) {
       toast.error("Please select Time Range.");
       return;
@@ -40,10 +46,22 @@ const DispatchReport = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${baseURL}dispatch/fg-unloading`, {
-        params: { startDate: startTime, endDate: endTime },
+        params: {
+          startDate: startTime,
+          endDate: endTime,
+          page: pageNumber,
+          limit,
+        },
       });
-      const data = res.data;
-      setFgUnloadingData(data);
+
+      console.log(res);
+
+      if (res?.data?.success) {
+        setFgUnloadingData(res?.data?.data);
+        setTotalFgUnloadingDataCount(res?.data?.totalCount);
+        setTotalUnloadingPages(Math.ceil(res?.data?.totalCount / limit));
+        setPageUnloading(pageNumber);
+      }
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
     } finally {
@@ -51,7 +69,7 @@ const DispatchReport = () => {
     }
   };
 
-  const fetchFgDispatchData = async () => {
+  const fetchFgDispatchData = async (pageNumber = 1) => {
     if (!startTime || !endTime || !status) {
       toast.error("Please select Time Range and Status.");
       return;
@@ -63,10 +81,19 @@ const DispatchReport = () => {
           startDate: startTime,
           endDate: endTime,
           status: status.value,
+          page: pageNumber,
+          limit,
         },
       });
-      const data = res.data;
-      setFgDispatchData(data);
+
+      console.log(res);
+
+      if (res?.data?.success) {
+        setFgDispatchData(res?.data?.data);
+        setTotalFgDispatchDataCount(res?.data?.totalCount);
+        setTotalDispatchPages(Math.ceil(res?.data?.totalCount / limit));
+        setPageDispatch(pageNumber);
+      }
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
     } finally {
@@ -76,9 +103,9 @@ const DispatchReport = () => {
 
   const handleQuery = () => {
     if (selectedStage.value === "fgunloading") {
-      fetchFgUnloadingData();
+      fetchFgUnloadingData(1);
     } else if (selectedStage.value === "fgdispatch") {
-      fetchFgDispatchData();
+      fetchFgDispatchData(1);
     }
   };
   return (
@@ -150,9 +177,9 @@ const DispatchReport = () => {
                 COUNT:{" "}
                 <span className="text-blue-700">
                   {selectedStage.value === "fgunloading"
-                    ? fgUnloadingData?.length ?? 0
+                    ? `${totalFgUnloadingDataCount}`
                     : selectedStage.value === "fgdispatch"
-                    ? fgDispatchData?.length ?? 0
+                    ? `${totalFgDispatchDataCount}`
                     : 0}
                 </span>
               </div>
@@ -162,22 +189,33 @@ const DispatchReport = () => {
       </div>
 
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
+        {selectedStage.value === "fgunloading" && (
+          <>
+            <PaginationControls
+              page={pageUnloading}
+              totalPages={totalUnloadingPages}
+              onPageChange={fetchFgUnloadingData}
+            />
+          </>
+        )}
+        {selectedStage.value === "fgdispatch" && (
+          <>
+            <PaginationControls
+              page={pageDispatch}
+              totalPages={totalDispatchPages}
+              onPageChange={fetchFgDispatchData}
+            />
+          </>
+        )}
         <div className="bg-white border border-gray-300 rounded-md p-4">
           <div className="flex flex-wrap items-center gap-4">
-            {/* Table 1 */}
             {loading ? (
               <Loader />
-            ) : (
-              <>
-                {selectedStage.value === "fgunloading" && (
-                  <FgUnloadingTable data={fgUnloadingData} />
-                )}
-
-                {selectedStage.value === "fgdispatch" && (
-                  <FgDispatchTable data={fgDispatchData} />
-                )}
-              </>
-            )}
+            ) : selectedStage.value === "fgunloading" ? (
+              <FgUnloadingTable data={fgUnloadingData} />
+            ) : selectedStage.value === "fgdispatch" ? (
+              <FgDispatchTable data={fgDispatchData} />
+            ) : null}
           </div>
         </div>
       </div>
@@ -280,4 +318,35 @@ const FgDispatchTable = ({ data }) => {
     </div>
   );
 };
+
+// ========== Pagination Controls ==========
+const PaginationControls = ({ page, totalPages, onPageChange }) => {
+  const isPrevDisabled = page <= 1;
+  const isNextDisabled = page >= totalPages;
+
+  return (
+    <div className="flex justify-center items-center gap-4 my-4">
+      <Button
+        onClick={() => onPageChange(page - 1)}
+        disabled={isPrevDisabled}
+        bgColor={isPrevDisabled ? "bg-gray-400" : "bg-blue-500"}
+        textColor="text-white"
+      >
+        Previous
+      </Button>
+      <span className="font-semibold">
+        Page {page} of {totalPages}
+      </span>
+      <Button
+        onClick={() => onPageChange(page + 1)}
+        disabled={isNextDisabled}
+        bgColor={isNextDisabled ? "bg-gray-400" : "bg-blue-500"}
+        textColor="text-white"
+      >
+        Next
+      </Button>
+    </div>
+  );
+};
+
 export default DispatchReport;

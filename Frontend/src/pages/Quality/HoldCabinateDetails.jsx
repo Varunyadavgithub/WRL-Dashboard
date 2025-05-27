@@ -34,8 +34,12 @@ const HoldCabinateDetails = () => {
   const [groupingCondition, setGroupingCondition] = useState(
     groupingOptions[0]
   );
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(1000);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchHoldCabietDetails = async () => {
+  const fetchHoldCabietDetails = async (pageNumber = 1) => {
     if (!startTime || !endTime || !state) {
       toast.error("Please select State and Time Range.");
       return;
@@ -47,11 +51,19 @@ const HoldCabinateDetails = () => {
         status: state.value,
         startDate: startTime,
         endDate: endTime,
+        page: pageNumber,
+        limit,
       };
       const res = await axios.get(`${baseURL}quality/hold-cabinet-details`, {
         params,
       });
-      setHoldCabinetDetails(res?.data);
+
+      if (res?.data?.success) {
+        setHoldCabinetDetails(res?.data?.data);
+        setTotalCount(res?.data?.totalCount);
+        setTotalPages(Math.ceil(res?.data?.totalCount / limit));
+        setPage(pageNumber);
+      }
     } catch (error) {
       console.error("Failed to fetch production data:", error);
     } finally {
@@ -82,6 +94,20 @@ const HoldCabinateDetails = () => {
     setState(State[0]);
     setHoldCabinetDetails([]);
     setGroupingCondition(groupingOptions[0]);
+    setPage(1);
+    setTotalPages(1);
+  };
+
+  const handlePrevPage = () => {
+    if (page > 1) {
+      fetchHoldCabietDetails(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      fetchHoldCabietDetails(page + 1);
+    }
   };
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
@@ -124,10 +150,7 @@ const HoldCabinateDetails = () => {
             />
             <div className="flex items-center justify-center">
               <div className="text-left font-bold text-lg">
-                COUNT:{" "}
-                <span className="text-blue-700">
-                  {holdCabinetDetails.length || "00"}
-                </span>
+                COUNT: <span className="text-blue-700">{totalCount || 0}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -137,7 +160,7 @@ const HoldCabinateDetails = () => {
                 className={`font-semibold ${
                   loading ? "cursor-not-allowed" : ""
                 }`}
-                onClick={() => fetchHoldCabietDetails()}
+                onClick={() => fetchHoldCabietDetails(1)}
                 disabled={loading}
               >
                 Query
@@ -154,6 +177,30 @@ const HoldCabinateDetails = () => {
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="bg-white border border-gray-300 rounded-md p-2">
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center gap-4 my-4">
+            <Button
+              onClick={handlePrevPage}
+              disabled={page === 1 || loading}
+              bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
+              textColor="text-white"
+            >
+              Previous
+            </Button>
+            <span className="font-semibold">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              onClick={handleNextPage}
+              disabled={page === totalPages || loading}
+              bgColor={
+                page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
+              }
+              textColor="text-white"
+            >
+              Next
+            </Button>
+          </div>
           <div className="flex flex-col md:flex-row items-start gap-1">
             {/* Left Side - Detailed Table */}
             <div className="w-full md:flex-1">
@@ -199,7 +246,10 @@ const HoldCabinateDetails = () => {
                     <tbody>
                       {holdCabinetDetails.length > 0 ? (
                         holdCabinetDetails.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">{item.ModelNo}</td>
                             <td className="px-1 py-1 border">
                               {item.FGSerialNo}
@@ -278,14 +328,6 @@ const HoldCabinateDetails = () => {
                       setGroupingCondition(selected);
                     }}
                   />
-                  <Button
-                    bgColor="bg-blue-500"
-                    textColor="text-white"
-                    className="hover:bg-blue-600"
-                    onClick={() => console.log("Go clicked")}
-                  >
-                    Go
-                  </Button>
                 </div>
               </div>
               {/* Summary Table */}
@@ -307,7 +349,10 @@ const HoldCabinateDetails = () => {
                     <tbody>
                       {getGroupedData().length > 0 ? (
                         getGroupedData().map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">{item.key}</td>
                             <td className="px-1 py-1 border">{item.count}</td>
                           </tr>

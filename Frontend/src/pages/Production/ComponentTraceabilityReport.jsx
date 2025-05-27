@@ -54,7 +54,7 @@ const ComponentTraceabilityReport = () => {
       const res = await axios.get(`${baseURL}prod/component-traceability`, {
         params,
       });
-      console.log(res);
+
       if (res?.data?.success) {
         setTraceabilityData(res?.data?.data);
         setTotalCount(res?.data?.totalCount);

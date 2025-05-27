@@ -71,8 +71,6 @@ const Overview = () => {
 
         const res = await axios.get(`${baseURL}prod/fgdata`, { params });
 
-        console.log(res);
-
         if (res?.data?.success) {
           setProductionData(res?.data?.data);
           setTotalCount(res?.data?.totalCount);
