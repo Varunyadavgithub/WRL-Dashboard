@@ -30,6 +30,8 @@ import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
 import { useSelector } from "react-redux";
 import NotFound from "../pages/NotFound";
+import ComponentDetails from "../pages/Production/ComponentDetails";
+import TagUpdate from "../pages/Quality/TagUpdate";
 
 function MainContent() {
   const userRole = useSelector((state) => state.auth.user?.role || "");
@@ -66,6 +68,10 @@ function MainContent() {
         )}
 
         <Route
+          path="/production/component-details"
+          element={<ComponentDetails />}
+        />
+        <Route
           path="/production/total-production"
           element={<TotalProduction />}
         />
@@ -96,6 +102,11 @@ function MainContent() {
           path="/quality/hold-cabinate-details"
           element={<HoldCabinateDetails />}
         />
+
+        {/* 🚫 Restricted Route: Only Line Quality Engineer, Quality Manager and Admin */}
+        {canAccess(["line quality engineer", "quality manager"]) && (
+          <Route path="/quality/tag-update" element={<TagUpdate />} />
+        )}
 
         {/* Dispatch */}
         <Route

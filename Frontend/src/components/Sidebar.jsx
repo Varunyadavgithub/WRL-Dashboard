@@ -35,6 +35,10 @@ const MENU_CONFIG = [
         label: "Model Name Update",
         roles: ["logistic"],
       },
+      {
+        path: "/production/component-details",
+        label: "Component Details",
+      },
       { path: "/production/total-production", label: "Total Production" },
     ],
   },
@@ -56,6 +60,11 @@ const MENU_CONFIG = [
         roles: ["line quality engineer", "quality manager"],
       },
       { path: "/quality/hold-cabinate-details", label: "Hold Cabinet Details" },
+      {
+        path: "/quality/tag-update",
+        label: "Tag Update",
+        roles: ["line quality engineer", "quality manager"],
+      },
     ],
   },
   {
