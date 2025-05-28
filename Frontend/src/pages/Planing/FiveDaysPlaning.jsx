@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
-import Button from "../../components/common/Button";
+import { BsEye, BsDownload, BsTrash } from "react-icons/bs";
 import { useSelector } from "react-redux";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -14,6 +14,7 @@ const FiveDaysPlanning = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [activePreviewId, setActivePreviewId] = useState(null);
 
   useEffect(() => {
     fetchFilesFromServer();
@@ -58,8 +59,15 @@ const FiveDaysPlanning = () => {
   };
 
   const handlePreviewFile = async (file) => {
+    if (activePreviewId === file.id) {
+      setActivePreviewId(null);
+      setPreviewData(null);
+      return;
+    }
+
     try {
       setLoading(true);
+      setActivePreviewId(file.id);
       const response = await axios.get(`http://localhost:3000${file.url}`, {
         responseType: "arraybuffer",
       });
@@ -70,7 +78,7 @@ const FiveDaysPlanning = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
         blankrows: true,
-        defval: "", // preserve empty cells
+        defval: "",
       });
 
       setPreviewData(jsonData);
@@ -78,6 +86,7 @@ const FiveDaysPlanning = () => {
     } catch (error) {
       console.error("Preview failed", error);
       toast.error("Preview failed");
+      setActivePreviewId(null);
     } finally {
       setLoading(false);
     }
@@ -114,7 +123,6 @@ const FiveDaysPlanning = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-auto max-w-full">
       <Title title="Five Days Planning" align="center" />
-
       {/* Upload Section */}
       {user.role === "admin" && (
         <div className="my-6 flex flex-col items-center gap-4">
@@ -127,7 +135,6 @@ const FiveDaysPlanning = () => {
             onChange={handleFileUpload}
             className="border p-2 rounded bg-white shadow"
           />
-          {loading && <Loader />}
         </div>
       )}
 
@@ -144,39 +151,46 @@ const FiveDaysPlanning = () => {
                 key={file.id}
                 className="bg-white rounded-lg shadow-md p-4 border border-purple-300"
               >
-                <h4 className="font-semibold text-gray-800 truncate">
+                <h4 className="font-semibold text-gray-800 truncate mb-3">
                   {file.filename}
                 </h4>
 
-                <div className="mt-4 flex gap-2">
-                  <Button
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {/* Preview */}
+                  <button
                     onClick={() => handlePreviewFile(file)}
-                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+                    className={`p-2 rounded transition cursor-pointer ${
+                      activePreviewId === file.id
+                        ? "bg-gray-300 text-gray-600"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
                   >
-                    Preview
-                  </Button>
-                  {user.role === "admin" ? (
-                    <>
-                      <Button
-                        onClick={() => handleDownloadFile(file)}
-                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
-                      >
-                        Download
-                      </Button>
-                      <Button
-                        onClick={"Handle Delete File"}
-                        className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition text-center"
-                      >
-                        Delete
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      onClick={() => handleDownloadFile(file)}
-                      className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition text-center"
+                    <BsEye
+                      size={18}
+                      className={`transition-transform duration-300 ${
+                        activePreviewId === file.id ? "scale-x-[-1]" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Download */}
+                  <button
+                    onClick={() => handleDownloadFile(file)}
+                    className="bg-green-600 text-white p-2 rounded hover:bg-green-700 transition cursor-pointer"
+                    title="Download"
+                  >
+                    <BsDownload size={18} />
+                  </button>
+
+                  {/* Delete (only for admin) */}
+                  {user.role === "admin" && (
+                    <button
+                      onClick={() => handleDeleteFile(file)}
+                      className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition cursor-pointer"
+                      title="Delete"
                     >
-                      Download
-                    </Button>
+                      <BsTrash size={18} />
+                    </button>
                   )}
                 </div>
               </div>
@@ -188,6 +202,7 @@ const FiveDaysPlanning = () => {
           </p>
         )}
       </div>
+      {loading && <Loader />}
 
       {/* Preview Table */}
       {previewData && (
