@@ -4,4 +4,5 @@ import { generateReport } from "../../controllers/production/componentTraceabili
 const route = express.Router();
 
 route.get("/component-traceability", generateReport);
+
 export default route;

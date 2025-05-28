@@ -22,6 +22,7 @@ import lineHourlyReportRoutes from "./routes/production/lineHourlyReport.js";
 // import stopLossReportRoutes from "./routes/stopLossReport.js";
 import stageHistoryReportRoutes from "./routes/production/stageHistoryReport.js";
 // import modelNameUpdateRoutes from "./routes/modelNameUpdate.js";
+import componentDetailsRoutes from "./routes/production/componentDetails.js";
 import totalProductionRoutes from "./routes/production/totalProduction.js";
 
 // <----- Quality Routes ----->
@@ -79,6 +80,7 @@ app.use("/api/v1/prod", lineHourlyReportRoutes);
 // app.use("/api/v1/prod", stopLossReportRoutes);
 app.use("/api/v1/prod", stageHistoryReportRoutes);
 // app.use("/api/v1/prod", modelNameUpdateRoutes);
+app.use("/api/v1/prod", componentDetailsRoutes);
 app.use("/api/v1/prod", totalProductionRoutes);
 
 // Quality API
