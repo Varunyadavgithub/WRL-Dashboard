@@ -116,18 +116,20 @@ const FiveDaysPlanning = () => {
       <Title title="Five Days Planning" align="center" />
 
       {/* Upload Section */}
-      <div className="my-6 flex flex-col items-center gap-4">
-        <label className="block text-lg font-semibold">
-          Upload Excel File (Authorized User Only)
-        </label>
-        <input
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={handleFileUpload}
-          className="border p-2 rounded bg-white shadow"
-        />
-        {loading && <Loader />}
-      </div>
+      {user.role === "admin" && (
+        <div className="my-6 flex flex-col items-center gap-4">
+          <label className="block text-lg font-semibold">
+            Upload Excel File (Authorized User Only)
+          </label>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            onChange={handleFileUpload}
+            className="border p-2 rounded bg-white shadow"
+          />
+          {loading && <Loader />}
+        </div>
+      )}
 
       {/* Files List */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
@@ -153,7 +155,7 @@ const FiveDaysPlanning = () => {
                   >
                     Preview
                   </Button>
-                  {user.role === "Admin" ? (
+                  {user.role === "admin" ? (
                     <>
                       <Button
                         onClick={() => handleDownloadFile(file)}

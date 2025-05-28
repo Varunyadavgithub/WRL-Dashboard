@@ -70,7 +70,7 @@ export const login = async (req, res) => {
         id: user.UserID,
         name: user.UserName,
         usercode: user.UserCode,
-        role: user.RoleName,
+        role: user.RoleName.toLowerCase(),
       },
     });
   } catch (error) {

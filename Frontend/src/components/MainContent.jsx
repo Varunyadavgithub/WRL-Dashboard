@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Home from "../pages/Home";
 
@@ -28,13 +28,11 @@ import ErrorLog from "../pages/Dispatch/ErrorLog";
 
 import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
-import { useSelector } from "react-redux";
 import NotFound from "./common/NotFound";
 import Unauthorized from "./common/Unauthorized";
 import RoleBasedAccess from "./RoleBasedAccess";
 
 function MainContent() {
-  const { user } = useSelector((store) => store.auth);
   return (
     <div className="flex-1 p-4 min-h-screen overflow-auto">
       <Routes>
@@ -85,7 +83,7 @@ function MainContent() {
           element={
             <RoleBasedAccess
               element={<FPA />}
-              allowedRoles={["FPA", "Quality Manager"]}
+              allowedRoles={["fpa", "quality manager"]}
             />
           }
         />
@@ -96,7 +94,7 @@ function MainContent() {
           element={
             <RoleBasedAccess
               element={<DispatchHold />}
-              allowedRoles={["Line Quality Engg.", "Quality Manager"]}
+              allowedRoles={["line quality engineer", "quality manager"]}
             />
           }
         />
@@ -137,7 +135,7 @@ function MainContent() {
           element={
             <RoleBasedAccess
               element={<ProductionPlaning />}
-              allowedRoles={["Product Manager"]}
+              allowedRoles={["product manager"]}
             />
           }
         />

@@ -50,7 +50,7 @@ const NavBar = () => {
             </div>
             <div
               className={`${
-                user.role === "Admin" ? "text-red-500" : "text-gray-400"
+                user.role === "admin" ? "text-red-500" : "text-gray-400"
               } text-sm`}
             >
               {user.role}
