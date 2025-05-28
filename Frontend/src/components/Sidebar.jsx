@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaClipboardList,
 } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 // Define menu configurations
 const MENU_CONFIG = [
@@ -29,7 +30,11 @@ const MENU_CONFIG = [
         path: "/production/stage-history-report",
         label: "Stage History Report",
       },
-      { path: "/production/model-name-update", label: "Model Name Update" },
+      {
+        path: "/production/model-name-update",
+        label: "Model Name Update",
+        roles: ["logistic"],
+      },
       { path: "/production/total-production", label: "Total Production" },
     ],
   },
@@ -43,9 +48,13 @@ const MENU_CONFIG = [
       { path: "/quality/gas-charging-report", label: "Gas Charging Report" },
       { path: "/quality/est-report", label: "EST Report" },
       { path: "/quality/mft-report", label: "MFT Report" },
-      { path: "/quality/fpa", label: "FPA" },
+      { path: "/quality/fpa", label: "FPA", roles: ["fpa", "quality manager"] },
       { path: "/quality/fpa-report", label: "FPA Report" },
-      { path: "/quality/dispatch-hold", label: "Dispatch Hold" },
+      {
+        path: "/quality/dispatch-hold",
+        label: "Dispatch Hold",
+        roles: ["line quality engineer", "quality manager"],
+      },
       { path: "/quality/hold-cabinate-details", label: "Hold Cabinet Details" },
     ],
   },
@@ -59,9 +68,13 @@ const MENU_CONFIG = [
         label: "Dispatch Performance Report",
       },
       { path: "/dispatch/dispatch-report", label: "Dispatch Report" },
-      { path: "/dispatch/fg-casting", label: "FG Casting" },
+      {
+        path: "/dispatch/fg-casting",
+        label: "FG Casting",
+        roles: ["logistic"],
+      },
       { path: "/dispatch/gate-entry", label: "Gate Entry" },
-      { path: "/dispatch/error-log", label: "Error Log" },
+      { path: "/dispatch/error-log", label: "Error Log", roles: ["logistic"] },
     ],
   },
   {
@@ -69,13 +82,22 @@ const MENU_CONFIG = [
     icon: FaClipboardList,
     label: "Planing",
     items: [
-      { path: "/planing/production-planing", label: "Production Planing" },
+      {
+        path: "/planing/production-planing",
+        label: "Production Planing",
+        roles: ["production manager", "planning team"],
+      },
       { path: "/planing/5-days-planing", label: "5 Days Planing" },
     ],
   },
 ];
 
 const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
+  const userRole = useSelector((state) => state.auth.user?.role || "");
+
+  const canAccess = (allowedRoles) =>
+    allowedRoles.includes(userRole) || userRole === "admin";
+
   const [expandedMenus, setExpandedMenus] = useState(
     MENU_CONFIG.reduce((acc, menu) => ({ ...acc, [menu.key]: false }), {})
   );
@@ -105,19 +127,23 @@ const Sidebar = ({ isSidebarExpanded, toggleSidebar }) => {
   const renderMenuItems = (menu) => {
     return (
       <ul className="ml-6 mt-2 space-y-2">
-        {menu.items.map((item, index) => (
-          <li key={index}>
-            <Link
-              to={item.path}
-              className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
-                item.path
-              )}`}
-              onClick={() => window.scrollTo(0, 0)}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
+        {menu.items.map((item, index) => {
+          if (item.roles && !canAccess(item.roles)) return null; // Hide restricted items
+
+          return (
+            <li key={index}>
+              <Link
+                to={item.path}
+                className={`block p-2 rounded-lg hover:bg-gray-700 transition ${isActive(
+                  item.path
+                )}`}
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     );
   };

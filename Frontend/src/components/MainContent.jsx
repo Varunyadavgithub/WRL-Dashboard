@@ -28,11 +28,14 @@ import ErrorLog from "../pages/Dispatch/ErrorLog";
 
 import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
+import { useSelector } from "react-redux";
 import NotFound from "../pages/NotFound";
-import Unauthorized from "./common/Unauthorized";
-import RoleBasedAccess from "./RoleBasedAccess";
 
 function MainContent() {
+  const userRole = useSelector((state) => state.auth.user?.role || "");
+
+  const canAccess = (allowedRoles) =>
+    allowedRoles.includes(userRole) || userRole === "admin";
   return (
     <div className="flex-1 p-4 min-h-screen overflow-auto">
       <Routes>
@@ -53,16 +56,15 @@ function MainContent() {
           path="/production/stage-history-report"
           element={<StageHistoryReport />}
         />
+
         {/* 🚫 Restricted Route: Only Logistic and Admin */}
-        <Route
-          path="/production/model-name-update"
-          element={
-            <RoleBasedAccess
-              element={<ModelNameUpdate />}
-              allowedRoles={["logistic"]}
-            />
-          }
-        />
+        {canAccess(["logistic"]) && (
+          <Route
+            path="/production/model-name-update"
+            element={<ModelNameUpdate />}
+          />
+        )}
+
         <Route
           path="/production/total-production"
           element={<TotalProduction />}
@@ -77,27 +79,19 @@ function MainContent() {
         />
         <Route path="/quality/est-report" element={<ESTReport />} />
         <Route path="/quality/mft-report" element={<MFTReport />} />
+
         {/* 🚫 Restricted Route: Only FPA, Quality Manager and Admin */}
-        <Route
-          path="/quality/fpa"
-          element={
-            <RoleBasedAccess
-              element={<FPA />}
-              allowedRoles={["fpa", "quality manager"]}
-            />
-          }
-        />
+        {canAccess(["fpa", "quality manager"]) && (
+          <Route path="/quality/fpa" element={<FPA />} />
+        )}
+
         <Route path="/quality/fpa-report" element={<FPAReports />} />
-        {/* 🚫 Restricted Route: Only FPA, Quality Manager and Admin */}
-        <Route
-          path="/quality/dispatch-hold"
-          element={
-            <RoleBasedAccess
-              element={<DispatchHold />}
-              allowedRoles={["line quality engineer", "quality manager"]}
-            />
-          }
-        />
+
+        {/* 🚫 Restricted Route: Only Line Quality Engineer, Quality Manager and Admin */}
+        {canAccess(["line quality engineer", "quality manager"]) && (
+          <Route path="/quality/dispatch-hold" element={<DispatchHold />} />
+        )}
+
         <Route
           path="/quality/hold-cabinate-details"
           element={<HoldCabinateDetails />}
@@ -109,40 +103,31 @@ function MainContent() {
           element={<DispatchPerformanceReport />}
         />
         <Route path="/dispatch/dispatch-report" element={<DispatchReport />} />
-        <Route
-          path="/dispatch/fg-casting"
-          element={
-            <RoleBasedAccess
-              element={<FGCasting />}
-              allowedRoles={["logistic"]}
-            />
-          }
-        />
+
+        {/* 🚫 Restricted Route: Only Logistic and Admin */}
+        {canAccess(["logistic"]) && (
+          <Route path="/dispatch/fg-casting" element={<FGCasting />} />
+        )}
+
         <Route path="/dispatch/gate-entry" element={<GateEntry />} />
-        <Route
-          path="/dispatch/error-log"
-          element={
-            <RoleBasedAccess
-              element={<ErrorLog />}
-              allowedRoles={["logistic"]}
-            />
-          }
-        />
+
+        {/* 🚫 Restricted Route: Only Logistic and Admin */}
+        {canAccess(["logistic"]) && (
+          <Route path="/dispatch/error-log" element={<ErrorLog />} />
+        )}
 
         {/* Planing */}
-        <Route
-          path="/planing/production-planing"
-          element={
-            <RoleBasedAccess
-              element={<ProductionPlaning />}
-              allowedRoles={["product manager"]}
-            />
-          }
-        />
+        {/* 🚫 Restricted Route: Only Production Manager, Planning Team and Admin */}
+        {canAccess(["production manager", "planning team"]) && (
+          <Route
+            path="/planing/production-planing"
+            element={<ProductionPlaning />}
+          />
+        )}
+
         <Route path="/planing/5-days-planing" element={<FiveDaysPlaning />} />
 
         <Route path="*" element={<NotFound />} />
-        <Route path="/not-authorized" element={<Unauthorized />} />
       </Routes>
     </div>
   );
