@@ -29,13 +29,13 @@ const ComponentDetails = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
       <Title title="Component Details" align="center" />
 
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        {/* First Row */}
         <div className="flex flex-wrap items-center gap-4">
           <InputField
             label="Serial Number"
