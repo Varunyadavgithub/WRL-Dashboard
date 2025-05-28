@@ -28,7 +28,7 @@ import ErrorLog from "../pages/Dispatch/ErrorLog";
 
 import ProductionPlaning from "../pages/Planing/ProductionPlaning";
 import FiveDaysPlaning from "../pages/Planing/FiveDaysPlaning";
-import NotFound from "./common/NotFound";
+import NotFound from "../pages/NotFound";
 import Unauthorized from "./common/Unauthorized";
 import RoleBasedAccess from "./RoleBasedAccess";
 
