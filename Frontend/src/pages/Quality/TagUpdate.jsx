@@ -55,7 +55,6 @@ const TagUpdate = () => {
       };
 
       const res = await axios.put(`${baseURL}quality/asset-tag`, payload);
-      console.log(res);
       if (res.data.success) {
         toast.success(res.data.message);
       } else {

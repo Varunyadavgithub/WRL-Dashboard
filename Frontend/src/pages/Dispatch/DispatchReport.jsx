@@ -54,8 +54,6 @@ const DispatchReport = () => {
         },
       });
 
-      console.log(res);
-
       if (res?.data?.success) {
         setFgUnloadingData(res?.data?.data);
         setTotalFgUnloadingDataCount(res?.data?.totalCount);
@@ -85,8 +83,6 @@ const DispatchReport = () => {
           limit,
         },
       });
-
-      console.log(res);
 
       if (res?.data?.success) {
         setFgDispatchData(res?.data?.data);

@@ -79,7 +79,6 @@ export const tagupdate = async (req, res) => {
       .input("fgSerialNumber", sql.NVarChar, fgSerialNumber)
       .input("newAssetNumber", sql.NVarChar, newAssetNumber)
       .query(query);
-    console.log(result);
 
     res.status(200).json({
       success: true,

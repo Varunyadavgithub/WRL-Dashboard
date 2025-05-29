@@ -37,7 +37,6 @@ const FGCasting = () => {
         params: { sessionId: serialNumber },
       });
       const data = res.data;
-      console.log(data);
       setFetchFgCastingData(data);
     } catch (error) {
       console.error("Failed to fetch fetch Fg Casting data:", error);
@@ -64,7 +63,6 @@ const FGCasting = () => {
   };
 
   const handleCastingData = () => {
-    console.log("Casting Details:", castingDetails);
     toast.success("Casting data logged to console");
     setCastingDetails(initialCastingState);
   };
