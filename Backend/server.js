@@ -30,6 +30,7 @@ import fpaRoutes from "./routes/quality/fpa.js";
 import fpaReportRoutes from "./routes/quality/fpaReport.js";
 import dispatchHoldRoutes from "./routes/quality/dispatchHold.js";
 import holdCabinetDetailsRoutes from "./routes/quality/holdCabinetDetails.js";
+import tagUpdateRoutes from "./routes/quality/tagUpdate.js";
 
 // <----- Dispatch Routes ----->
 import dispatchPerformanceReportRoute from "./routes/dispatch/performanceReport.js";
@@ -88,6 +89,7 @@ app.use("/api/v1/quality", fpaRoutes);
 app.use("/api/v1/quality", fpaReportRoutes);
 app.use("/api/v1/quality", dispatchHoldRoutes);
 app.use("/api/v1/quality", holdCabinetDetailsRoutes);
+app.use("/api/v1/quality", tagUpdateRoutes);
 
 // <----- Dispatch Routes ----->
 app.use("/api/v1/dispatch", dispatchPerformanceReportRoute);

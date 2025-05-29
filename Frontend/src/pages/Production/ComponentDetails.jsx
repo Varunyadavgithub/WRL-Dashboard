@@ -131,7 +131,7 @@ const ComponentDetails = () => {
                         <td className="px-1 py-1 border">
                           {item.Supplier_Name}
                         </td>
-                        <td className="px-1 py-1 border">{item.FG_Sr_No}</td>
+                        <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
                         <td className="px-1 py-1 border">{item.PSNo}</td>
                         <td className="px-1 py-1 border">{item.Alias}</td>
                         <td className="px-1 py-1 border">
