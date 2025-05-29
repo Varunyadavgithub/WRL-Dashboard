@@ -136,7 +136,7 @@ console.log(data)
                               )}
                           </td>
                           <td className="px-1 py-1 border">
-                            {item.StationAlias}
+                            {item.BarcodeAlias}
                           </td>
                           <td className="px-1 py-1 border">
                             {item.CustomerQR}
