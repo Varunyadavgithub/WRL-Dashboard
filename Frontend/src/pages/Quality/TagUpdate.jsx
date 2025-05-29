@@ -4,7 +4,7 @@ import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useEffect } from "react";
+import SelectField from "../../components/common/SelectField";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,8 +14,15 @@ const TagUpdate = () => {
   const [fgSerialNumber, setFgSerialNumber] = useState("");
   const [assetNumber, setAssetNumber] = useState("");
   const [modelName, setModelName] = useState("");
+  const [serial2, setSerial2] = useState("");
   const [newAssetNumber, setNewAssetNumber] = useState("");
-  const [isUpdateDisabled, setIsUpdateDisabled] = useState(false);
+  const [newCustomerQr, setNewCustomerQr] = useState("");
+
+  const updateOption = [
+    { label: "New Asset No.", value: "newassetnumber" },
+    { label: "New Customer QR", value: "newcustomerqr" },
+  ];
+  const [selectedToUpdate, setSelectedToUpdate] = useState(updateOption[0]);
 
   const fetchAssetDetails = async () => {
     if (!assemblyNumber) {
@@ -33,6 +40,7 @@ const TagUpdate = () => {
       setFgSerialNumber(res?.data?.FGNo);
       setAssetNumber(res?.data?.AssetNo);
       setModelName(res?.data?.ModelName);
+      setSerial2(res?.data?.Serial2);
     } catch (error) {
       console.error("Failed to fetch Asset Details data:", error);
     } finally {
@@ -40,36 +48,67 @@ const TagUpdate = () => {
     }
   };
 
-  const handleTagUpdateData = async () => {
-    if (!assemblyNumber && !fgSerialNumber && !newAssetNumber) {
-      toast.error("All fields are required");
+  const handleUpdateNewAsset = async () => {
+    if (!newAssetNumber) {
+      toast.error("New Asset Number is required");
+      return;
+    }
+    if (!assemblyNumber && !fgSerialNumber) {
+      toast.error("Assembly Number and FGSerialNumber fields are required");
       return;
     }
     try {
       setLoading(true);
-      setIsUpdateDisabled(true);
+
       const payload = {
         assemblyNumber,
         fgSerialNumber,
         newAssetNumber,
       };
 
-      const res = await axios.put(`${baseURL}quality/asset-tag`, payload);
+      const res = await axios.put(`${baseURL}quality/new-asset-tag`, payload);
       if (res.data.success) {
         toast.success(res.data.message);
       } else {
-        toast.error("Failed to update Asset Tag.");
+        toast.error("Failed to update New Asset Number.");
       }
     } catch (error) {
-      console.error("Failed to update the Asset Tag data:", error);
+      console.error("Failed to update the New Asset Number Data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    setIsUpdateDisabled(false);
-  }, [assemblyNumber, fgSerialNumber, newAssetNumber]);
+  const handleUpdateNewCustomerQr = async () => {
+    if (!newCustomerQr) {
+      toast.error("New Customer QR is required");
+      return;
+    }
+    if (!assemblyNumber && !fgSerialNumber) {
+      toast.error("Assembly Number and FGSerialNumber fields are required");
+      return;
+    }
+    try {
+      setLoading(true);
+
+      const payload = {
+        assemblyNumber,
+        fgSerialNumber,
+        newCustomerQr,
+      };
+
+      const res = await axios.put(`${baseURL}quality/new-customer-qr`, payload);
+      if (res.data.success) {
+        toast.success(res.data.message);
+      } else {
+        toast.error("Failed to update New Customer QR.");
+      }
+    } catch (error) {
+      console.error("Failed to update the New Customer QR data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
@@ -94,7 +133,6 @@ const TagUpdate = () => {
                     value={assemblyNumber}
                     onChange={(e) => {
                       setAssemblyNumber(e.target.value);
-                      setIsUpdateDisabled(false);
                     }}
                   />
                   <div>
@@ -111,38 +149,72 @@ const TagUpdate = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-4">
-                  <InputField
-                    label="New Asset No."
-                    type="text"
-                    placeholder="Enter details"
-                    className="max-w-4xl"
-                    name="newAssetNumber"
-                    value={newAssetNumber}
-                    onChange={(e) => setNewAssetNumber(e.target.value)}
-                  />
-                  <div>
-                    <Button
-                      bgColor={
-                        loading || isUpdateDisabled
-                          ? "bg-gray-400"
-                          : "bg-blue-500"
-                      }
-                      textColor={
-                        loading || isUpdateDisabled
-                          ? "text-white"
-                          : "text-black"
-                      }
-                      className={`font-semibold ${
-                        loading || isUpdateDisabled ? "cursor-not-allowed" : ""
-                      }`}
-                      onClick={handleTagUpdateData}
-                      disabled={loading || isUpdateDisabled}
-                    >
-                      Update
-                    </Button>
+
+                <SelectField
+                  label="Select to Update"
+                  options={updateOption}
+                  value={selectedToUpdate?.value || ""}
+                  onChange={(e) => {
+                    const selected = updateOption.find(
+                      (opt) => opt.value === e.target.value
+                    );
+                    if (selected) {
+                      setSelectedToUpdate(selected);
+                    }
+                  }}
+                  className="max-w-2xl"
+                />
+                {selectedToUpdate?.value === "newassetnumber" ? (
+                  <div className="flex items-center justify-center gap-4">
+                    <InputField
+                      label="New Asset No."
+                      type="text"
+                      placeholder="Enter New Asset No."
+                      className="max-w-4xl"
+                      name="newAssetNumber"
+                      value={newAssetNumber}
+                      onChange={(e) => setNewAssetNumber(e.target.value)}
+                    />
+                    <div>
+                      <Button
+                        bgColor={loading ? "bg-gray-400" : "bg-green-600"}
+                        textColor={loading ? "text-white" : "text-black"}
+                        className={`font-semibold ${
+                          loading ? "cursor-not-allowed" : "cursor-pointer"
+                        }`}
+                        onClick={() => handleUpdateNewAsset()}
+                        disabled={loading}
+                      >
+                        Update
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-4">
+                    <InputField
+                      label="New Customer QR"
+                      type="text"
+                      placeholder="Enter New Customer QR"
+                      className="max-w-4xl"
+                      name="newCustomerQr"
+                      value={newCustomerQr}
+                      onChange={(e) => setNewCustomerQr(e.target.value)}
+                    />
+                    <div>
+                      <Button
+                        bgColor={loading ? "bg-gray-400" : "bg-green-600"}
+                        textColor={loading ? "text-white" : "text-black"}
+                        className={`font-semibold ${
+                          loading ? "cursor-not-allowed" : ""
+                        }`}
+                        onClick={() => handleUpdateNewCustomerQr()}
+                        disabled={loading}
+                      >
+                        Update
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col items-center justify-center gap-4">
@@ -164,6 +236,10 @@ const TagUpdate = () => {
                   <span className="text-blue-700 text-md">
                     {modelName || 0}
                   </span>
+                </h1>
+                <h1 className="font-semibold text-xl">
+                  Customer QR{" "}
+                  <span className="text-blue-700 text-md">{serial2 || 0}</span>
                 </h1>
               </div>
             </div>

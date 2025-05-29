@@ -27,7 +27,7 @@ function StageHistoryReport() {
       });
       const data = res.data?.result?.recordsets[0] || [];
       setStageHistoryData(data);
-
+console.log(data)
       if (data.length > 0 && data[0].MaterialName) {
         setProductName(data[0].MaterialName);
       } else {
@@ -96,10 +96,10 @@ function StageHistoryReport() {
                         Station_Code
                       </th>
                       <th className="px-1 py-1 border min-w-[120px]">Name</th>
-                      <th className="px-1 py-1 border min-w-[120px]">Alias</th>
                       <th className="px-1 py-1 border min-w-[120px]">
                         Activity On
                       </th>
+                      <th className="px-1 py-1 border min-w-[120px]">Alias</th>
                       <th className="px-1 py-1 border min-w-[120px]">
                         Customer QR
                       </th>
@@ -129,14 +129,14 @@ function StageHistoryReport() {
                             {item.StationName}
                           </td>
                           <td className="px-1 py-1 border">
-                            {item.StationAlias}
-                          </td>
-                          <td className="px-1 py-1 border">
                             {item.ActivityOn &&
                               item.ActivityOn.replace("T", " ").replace(
                                 "Z",
                                 ""
                               )}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.StationAlias}
                           </td>
                           <td className="px-1 py-1 border">
                             {item.CustomerQR}

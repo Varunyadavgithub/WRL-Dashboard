@@ -12,7 +12,7 @@ export const getAssetTagDetails = async (req, res) => {
 
   const query = `
     SELECT 
-      mb.Serial + '~' + mb.VSerial + '~' + m.Alias AS combinedserial
+      mb.Serial + '~' + mb.VSerial + '~' + m.Alias + '~' + mb.Serial2 AS combinedserial
     FROM 
       MaterialBarcode AS mb
     INNER JOIN 
@@ -38,16 +38,18 @@ export const getAssetTagDetails = async (req, res) => {
         FGNo: null,
         AssetNo: null,
         ModelName: null,
+        Serial2: null,
       });
     }
 
-    const [FGNo, AssetNo, ModelName] = combined.split("~");
+    const [FGNo, AssetNo, ModelName, Serial2] = combined.split("~");
 
     res.status(200).json({
       success: true,
       FGNo,
       AssetNo,
       ModelName,
+      Serial2,
     });
 
     await pool.close();
@@ -60,7 +62,7 @@ export const getAssetTagDetails = async (req, res) => {
   }
 };
 
-export const tagupdate = async (req, res) => {
+export const newAssetTagUpdate = async (req, res) => {
   const { assemblyNumber, fgSerialNumber, newAssetNumber } = req.body;
 
   if (!assemblyNumber || !fgSerialNumber || !newAssetNumber) {
@@ -83,6 +85,37 @@ export const tagupdate = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Asset Tag updated successfully.",
+    });
+    await pool.close();
+  } catch (err) {
+    console.error("SQL Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const newCustomerQrUpdate = async (req, res) => {
+  const { assemblyNumber, fgSerialNumber, newCustomerQr } = req.body;
+
+  if (!assemblyNumber || !fgSerialNumber || !newCustomerQr) {
+    return res.status(400).send("All fields are required.");
+  }
+
+  const query = `
+    update MaterialBarcode set Serial2=@newCustomerQr where Alias=@assemblyserial and Serial=@fgSerialNumber
+  `;
+
+  try {
+    const pool = await new sql.ConnectionPool(dbConfig1).connect();
+    const result = await pool
+      .request()
+      .input("assemblyserial", sql.NVarChar, assemblyNumber)
+      .input("fgSerialNumber", sql.NVarChar, fgSerialNumber)
+      .input("newCustomerQr", sql.NVarChar, newCustomerQr)
+      .query(query);
+
+    res.status(200).json({
+      success: true,
+      message: "Customer QR updated successfully.",
     });
     await pool.close();
   } catch (err) {

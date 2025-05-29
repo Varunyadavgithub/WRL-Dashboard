@@ -59,8 +59,8 @@ export const fetchFGData = async (req, res) => {
 ),
 ModelStats AS (
     SELECT    
-        MIN(Assembly_Sr_No) AS StartSerial,
-        MAX(Assembly_Sr_No) AS EndSerial,
+        MIN(Serial) AS StartSerial,
+        MAX(Serial) AS EndSerial,
         COUNT(*) AS TotalCount,
         Material
     FROM FilteredData
