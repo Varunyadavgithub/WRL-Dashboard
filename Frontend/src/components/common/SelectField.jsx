@@ -15,7 +15,7 @@ const SelectField = ({
         onChange={onChange}
         className={`w-full p-1 border rounded-md bg-white ${className}`}
       >
-        <option value="">Select {label}</option>
+        <option value="">{label}</option>
         {options
           .filter((opt) => opt && (opt.label || typeof opt === "string"))
           .map((opt, idx) => {
