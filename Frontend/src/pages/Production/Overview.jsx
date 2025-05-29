@@ -236,34 +236,34 @@ const Overview = () => {
                   <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
                     <thead className="bg-gray-200 sticky top-0 z-10 text-center">
                       <tr>
-                        <th className="px-1 py-1 border max-w-[120px]">
+                        <th className="px-1 py-1 border max-w-[100px]">
                           Sr.No.
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           Model_Name
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           Model_No.
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           Station_Code
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           Assembly Sr.No
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           Asset tag
                         </th>
-                        <th className="px-1 py-1 border max-w-[120px]">
+                        <th className="px-1 py-1 border max-w-[100px]">
                           Customer_QR
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           UserName
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           FG Serial_No.
                         </th>
-                        <th className="px-1 py-1 border min-w-[120px]">
+                        <th className="px-1 py-1 border min-w-[100px]">
                           CreatedOn
                         </th>
                       </tr>
