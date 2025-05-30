@@ -1,35 +1,147 @@
-import { useState } from "react";
 import Button from "../../components/common/Button";
 import InputField from "../../components/common/InputField";
 import SelectField from "../../components/common/SelectField";
 import Title from "../../components/common/Title";
 import Loader from "../../components/common/Loader";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const ProductionPlaning = () => {
+  const { user } = useSelector((store) => store.auth);
   const [loading, setLoading] = useState(false);
-  const planMonthOptions = [
-    { label: "January", value: "january" },
-    { label: "February", value: "february" },
-    { label: "March", value: "march" },
-    { label: "April", value: "april" },
-    { label: "May", value: "may" },
-    { label: "June", value: "june" },
-    { label: "July", value: "july" },
-    { label: "August", value: "august" },
-    { label: "September", value: "september" },
-    { label: "October", value: "october" },
-    { label: "November", value: "november" },
-    { label: "December", value: "december" },
-  ];
+  const [planMonthOptions, setPlanMonthOptions] = useState([]);
+  const [selectedPlanMonth, setSelectedPlanMonth] = useState(null);
+  const [modelNameOptions, setModelNameOptions] = useState([]);
+  const [selectedModelName, setSelectedModelName] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState("assembly");
+  const [productionPlaningData, setProductionPlaningData] = useState([]);
+  const [planQuentity, setPlanQuentity] = useState(0);
+  const [remark, setRemark] = useState("");
 
-  const [selectedPlanMonth, setSelectedPlanMonth] = useState(
-    planMonthOptions[0]
-  );
-  const planOptions = [
-    { label: "FG Label", value: "fglabel" },
-    { label: "Forming Barcode", value: "formingbarcode" },
-  ];
-  const [selectedPlan, setSelectedPlan] = useState(planOptions[0]);
+  const fetchModelName = async () => {
+    try {
+      const params = {
+        plan: selectedPlan,
+      };
+
+      const res = await axios.get(`${baseURL}planing/model-name`, { params });
+      const data = res.data?.data || [];
+
+      const formatted = data.map((item) => {
+        return {
+          label: item.Alias.toString(),
+          value: item.matcode.toString(),
+        };
+      });
+
+      setModelNameOptions(formatted);
+    } catch (error) {
+      console.error("Failed to fetch model name:", error);
+    }
+  };
+
+  const fetchPlanMonthYear = async () => {
+    try {
+      const res = await axios.get(`${baseURL}planing/plan-month-year`);
+
+      const data = res.data?.data || [];
+
+      const formatted = data.map((item) => {
+        return {
+          label: item.PlanMonthYear.toString(),
+          value: item.PlanMonthYear.toString(),
+        };
+      });
+
+      setPlanMonthOptions(formatted);
+    } catch (error) {
+      console.error("Failed to fetch plan month year:", error);
+    }
+  };
+
+  const fetchProductionPlaningData = async () => {
+    if (!selectedPlan || !selectedPlanMonth || !selectedModelName) {
+      toast.error("Please select Plan Type, Plan Month Year and Model Name.");
+      return;
+    }
+    try {
+      setLoading(true);
+
+      const params = {
+        planType: selectedPlan,
+        planMonthYear: selectedPlanMonth.value,
+        matcode: selectedModelName.value,
+      };
+
+      const res = await axios.get(`${baseURL}planing/production-planing`, {
+        params,
+      });
+      if (res?.data?.success) {
+        setProductionPlaningData(res?.data?.data || []);
+        toast.success("All Production Planing Data is fetched successfully.");
+        setSelectedModelName(null);
+        setSelectedPlanMonth(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch Production Planing Data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProductionPlaningData = async () => {
+    if (
+      !selectedModelName ||
+      !selectedPlanMonth ||
+      !planQuentity ||
+      !remark ||
+      !selectedPlan
+    ) {
+      toast.error(
+        "Please select Model Name, Plan Month Year, Quentity, Remark and Plan Type."
+      );
+      return;
+    }
+    try {
+      setLoading(true);
+
+      const payload = {
+        planQty: planQuentity,
+        remark: remark,
+        matcode: selectedModelName.value,
+        planMonthYear: selectedPlanMonth.value,
+        planType: selectedPlan,
+      };
+
+      const res = await axios.put(`${baseURL}planing/production-planing`, {
+        payload,
+      });
+
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+        setSelectedModelName(null);
+        setSelectedPlanMonth(null);
+        setPlanQuentity(0);
+        setRemark("");
+      }
+    } catch (error) {
+      console.error("Failed to fetch Production Planing Data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlanMonthYear();
+  }, []);
+
+  useEffect(() => {
+    fetchModelName();
+  }, [selectedPlan]);
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
@@ -41,17 +153,20 @@ const ProductionPlaning = () => {
             <div className="flex flex-col gap-2">
               <SelectField
                 label="Model Name"
-                // options={modelNames}
-                // value={selectedModel?.value || ""}
-                // onChange={(e) =>
-                //   setSelectedModel(
-                //     modelNames.find((opt) => opt.value === e.target.value) || 0
-                //   )
-                // }
+                options={modelNameOptions}
+                value={selectedModelName?.value || ""}
+                onChange={(e) => {
+                  const selected = modelNameOptions.find(
+                    (opt) => opt.value === e.target.value
+                  );
+                  if (selected) {
+                    setSelectedModelName(selected);
+                  }
+                }}
                 className="max-w-64"
               />
               <SelectField
-                label="Plan Month"
+                label="Plan Month Year"
                 options={planMonthOptions}
                 value={selectedPlanMonth?.value || ""}
                 onChange={(e) => {
@@ -68,40 +183,79 @@ const ProductionPlaning = () => {
             <div className="flex flex-col gap-2">
               <InputField
                 label="Add Quantity"
-                type="text"
+                type="number"
                 placeholder="Enter Quantity"
+                name="planQuentity"
+                value={planQuentity}
+                onChange={(e) => setPlanQuentity(e.target.value)}
                 className="max-w-64"
               />
               <InputField
                 label="Remark"
                 type="text"
                 placeholder="Enter Remark"
+                name="remark"
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
                 className="max-w-64"
               />
             </div>
           </div>
         </div>
         <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-          <SelectField
-            label="Select Plan"
-            options={planOptions}
-            value={selectedPlan?.value || ""}
-            onChange={(e) => {
-              const selected = planOptions.find(
-                (opt) => opt.value === e.target.value
-              );
-              if (selected) {
-                setSelectedPlan(selected);
-              }
-            }}
-            className="max-w-64"
-          />
+          <div>
+            <label className="block font-semibold mb-2">Select Plan</label>
+            <div className="flex gap-6">
+              {(user.role === "admin" ||
+                user.role === "production manager" ||
+                user.role === "planning team") && (
+                <>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="plan"
+                      value="assembly"
+                      checked={selectedPlan === "assembly"}
+                      onChange={() => setSelectedPlan("assembly")}
+                      className="form-radio text-purple-600"
+                    />
+                    <span>Assembly Label</span>
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="plan"
+                      value="fg"
+                      checked={selectedPlan === "fg"}
+                      onChange={() => setSelectedPlan("fg")}
+                      className="form-radio text-purple-600"
+                    />
+                    <span>FG Label</span>
+                  </label>
+                </>
+              )}
+              {user.role === "production manager" && (
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="plan"
+                    value="assembly"
+                    checked={selectedPlan === "assembly"}
+                    onChange={() => setSelectedPlan("assembly")}
+                    className="form-radio text-purple-600"
+                  />
+                  <span>Assembly Label</span>
+                </label>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center gap-4 mt-4">
             <Button
               bgColor={loading ? "bg-gray-400" : "bg-green-500"}
               textColor={loading ? "text-white" : "text-black"}
               className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              // onClick={() => handleAddFg()}
+              onClick={() => fetchProductionPlaningData()}
               disabled={loading}
             >
               Search
@@ -152,34 +306,22 @@ const ProductionPlaning = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* {traceabilityData.length > 0 ? (
-                    traceabilityData.map((item, index) => (
+                  {productionPlaningData && productionPlaningData.length > 0 ? (
+                    productionPlaningData.map((item, index) => (
                       <tr key={index} className="hover:bg-gray-100 text-center">
-                        <td className="px-1 py-1 border">{item.PSNo}</td>
-                        <td className="px-1 py-1 border">{item.Model_Name}</td>
+                        <td className="px-1 py-1 border">{item.PlanNo}</td>
                         <td className="px-1 py-1 border">
-                          {item.Reference_Barcode}
+                          {item.PlanMonthYear}
                         </td>
+                        <td className="px-1 py-1 border">{item.Alias}</td>
+                        <td className="px-1 py-1 border">{item.PlanQty}</td>
+                        <td className="px-1 py-1 border">{item.PrintLbl}</td>
+                        <td className="px-1 py-1 border">{item.PlanType}</td>
+                        <td className="px-1 py-1 border">{item.Remark}</td>
+                        <td className="px-1 py-1 border">{item.username}</td>
                         <td className="px-1 py-1 border">
-                          {item.Component_Serial_Number}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Component_Name}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Component_Type}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Supplier_Name}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.ScannedOn &&
-                            item.ScannedOn.replace("T", " ").replace("Z", "")}
-                        </td>
-                        <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
-                        <td className="px-1 py-1 border">{item.Asset_tag}</td>
-                        <td className="px-1 py-1 border">
-                          {item.SAP_Item_Code}
+                          {item.CreatedOn &&
+                            item.CreatedOn.replace("T", " ").replace("Z", "")}
                         </td>
                       </tr>
                     ))
@@ -189,7 +331,7 @@ const ProductionPlaning = () => {
                         No data found.
                       </td>
                     </tr>
-                  )} */}
+                  )}
                 </tbody>
               </table>
             </div>

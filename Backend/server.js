@@ -39,6 +39,7 @@ import fgCastingRoute from "./routes/dispatch/fgCasting.js";
 import errorLogRoute from "./routes/dispatch/errorLog.js";
 
 // <----- Planing Routes ----->
+import productionPlaningRoutes from "./routes/planing/productionPlaning.js";
 import fiveDaysPlaningRoutes from "./routes/planing/fiveDaysPlaning.js";
 
 const app = express();
@@ -98,6 +99,7 @@ app.use("/api/v1/dispatch", fgCastingRoute);
 app.use("/api/v1/dispatch", errorLogRoute);
 
 // Planing API
+app.use("/api/v1/planing", productionPlaningRoutes);
 app.use("/api/v1/planing", fiveDaysPlaningRoutes);
 
 // <------------------------------------------------------------- Serve Frontend from Backend ------------------------------------------------------------->
