@@ -58,7 +58,14 @@ import sql, { dbConfig1 } from "../../config/db.js";
 // };
 
 export const getBarcodeDetails = async (req, res) => {
-  const { startDate, endDate, model, page = 1, limit = 1000 } = req.query;
+  const {
+    startDate,
+    endDate,
+    model,
+    department,
+    page = 1,
+    limit = 1000,
+  } = req.query;
 
   if (!startDate || !endDate) {
     return res.status(400).send("Missing startDate or endDate.");
@@ -68,6 +75,17 @@ export const getBarcodeDetails = async (req, res) => {
     const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
     const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
     const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    const finalStationCodes = ["1220010", "1230017"];
+    const postFormingStationCodes = [
+      "1230007",
+      "1220003",
+      "1220004",
+      "1230012",
+    ];
+    
+    const selectedStationCodes =
+      department === "final" ? finalStationCodes : postFormingStationCodes;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const request = pool
@@ -81,6 +99,9 @@ export const getBarcodeDetails = async (req, res) => {
       request.input("model", sql.VarChar, model);
     }
 
+    // Dynamically build StationCode string for IN clause
+    const stationCodeString = selectedStationCodes.join(", ");
+
     const query = `
       WITH Psno AS (
         SELECT DocNo, Material, Serial, VSerial, Serial2, Alias 
@@ -92,15 +113,21 @@ export const getBarcodeDetails = async (req, res) => {
           ROW_NUMBER() OVER (ORDER BY Psno.Serial) AS RowNum,
           (SELECT Name FROM Material WHERE MatCode = Psno.Material) AS Model_Name,
           ISNULL(Psno.VSerial, '') AS Asset_tag,
-          CASE WHEN SUBSTRING(Psno.Serial, 1, 1) IN ('S', 'F', 'L') THEN '' ELSE Psno.Serial END AS FG_SR,
-          mc.Alias AS category
+        COALESCE(NULLIF(CASE WHEN SUBSTRING(Psno.Serial, 1, 1) IN ('S', 'F', 'L') THEN '' ELSE Psno.Serial END, ''),
+            CASE 
+                WHEN Psno.VSerial IS NULL THEN Psno.Serial 
+                ELSE Psno.Alias 
+            END
+        ) AS FG_SR,
+        ISNULL(mc.Alias, 'N/A') AS category
+
         FROM Psno
         JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
         JOIN WorkCenter c ON b.StationCode = c.StationCode
         JOIN Material m ON m.MatCode = Psno.Material
-        JOIN MaterialCategory mc ON mc.CategoryCode = m.Category
+        LEFT JOIN MaterialCategory mc ON mc.CategoryCode = m.Category
         WHERE b.ActivityType = 5
-          AND c.StationCode IN (1220010, 1230017)
+          AND c.StationCode IN (${stationCodeString})          
           AND b.ActivityOn BETWEEN @startTime AND @endTime
           ${model && model != 0 ? "AND Psno.Material = @model" : ""}
       )

@@ -58,6 +58,7 @@ const TotalProduction = () => {
         endDate: endTime,
         page: pageNumber,
         limit,
+        department: selecedDep.value,
       };
 
       if (selectedVariant) {
