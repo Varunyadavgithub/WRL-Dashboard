@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Title from "../../components/common/Title";
 import Button from "../../components/common/Button";
 import SelectField from "../../components/common/SelectField";
@@ -18,9 +18,25 @@ const ComponentTraceabilityReport = () => {
   const [endTime, setEndTime] = useState("");
   const [traceabilityData, setTraceabilityData] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(1000);
+  const [limit] = useState(50);
+  const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+
+  const observer = useRef();
+  const lastRowRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   const fetchModelVariants = async () => {
     try {
@@ -56,10 +72,9 @@ const ComponentTraceabilityReport = () => {
       });
 
       if (res?.data?.success) {
-        setTraceabilityData(res?.data?.data);
+        setTraceabilityData((prev) => [...prev, ...res?.data?.data]);
         setTotalCount(res?.data?.totalCount);
-        setTotalPages(Math.ceil(res?.data?.totalCount / limit));
-        setPage(pageNumber);
+        setHasMore(res?.data?.data.length > 0);
       }
     } catch (error) {
       console.error("Failed to fetch component traceability data:", error);
@@ -72,16 +87,15 @@ const ComponentTraceabilityReport = () => {
     fetchModelVariants();
   }, []);
 
-  const handlePrevPage = () => {
-    if (page > 1) {
-      fetchTraceabilityData(page - 1);
-    }
-  };
+  useEffect(() => {
+    if (page === 1) return;
+    fetchTraceabilityData(page);
+  }, [page]);
 
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      fetchTraceabilityData(page + 1);
-    }
+  const handleTraceabilityData = () => {
+    fetchTraceabilityData([]);
+    setPage(1);
+    fetchTraceabilityData(1);
   };
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
@@ -129,7 +143,7 @@ const ComponentTraceabilityReport = () => {
               bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
               textColor={loading ? "text-white" : "text-black"}
               className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              onClick={() => fetchTraceabilityData(1)}
+              onClick={handleTraceabilityData}
               disabled={loading}
             >
               Query
@@ -150,115 +164,81 @@ const ComponentTraceabilityReport = () => {
 
       {/* Summary Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
-        {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 my-4">
-          <Button
-            onClick={handlePrevPage}
-            disabled={page === 1 || loading}
-            bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
-            textColor="text-white"
-          >
-            Previous
-          </Button>
-          <span className="font-semibold">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            onClick={handleNextPage}
-            disabled={page === totalPages || loading}
-            bgColor={
-              page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
-            }
-            textColor="text-white"
-          >
-            Next
-          </Button>
-        </div>
         <div className="w-full bg-white border border-gray-300 rounded-md p-4">
-          {/* Data Table */}
-          {loading ? (
-            <Loader />
-          ) : (
-            <div className="w-full max-h-[600px] overflow-x-auto">
-              <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                  <tr>
-                    <th className="px-1 py-1 border min-w-[120px]">PS_No.</th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Model_Name
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Reference Barcode
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Component Serial No.
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Component Name
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Component Type
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Supplier_Name
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Scanned On
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Fg Sr. No.
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      Asset tag
-                    </th>
-                    <th className="px-1 py-1 border min-w-[120px]">
-                      SAP Item Code
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {traceabilityData.length > 0 ? (
-                    traceabilityData.map((item, index) => (
-                      <tr key={index} className="hover:bg-gray-100 text-center">
-                        <td className="px-1 py-1 border">{item.PSNo}</td>
-                        <td className="px-1 py-1 border">{item.Model_Name}</td>
-                        <td className="px-1 py-1 border">
-                          {item.Reference_Barcode}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Component_Serial_Number}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Component_Name}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Component_Type}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.Supplier_Name}
-                        </td>
-                        <td className="px-1 py-1 border">
-                          {item.ScannedOn &&
-                            item.ScannedOn.replace("T", " ").replace("Z", "")}
-                        </td>
-                        <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
-                        <td className="px-1 py-1 border">{item.Asset_tag}</td>
-                        <td className="px-1 py-1 border">
-                          {item.SAP_Item_Code}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={12} className="text-center py-4">
-                        No data found.
+          <div className="w-full max-h-[600px] overflow-x-auto">
+            <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+              <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                <tr>
+                  <th className="px-1 py-1 border min-w-[120px]">PS_No.</th>
+                  <th className="px-1 py-1 border min-w-[120px]">Model_Name</th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    Reference Barcode
+                  </th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    Component Serial No.
+                  </th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    Component Name
+                  </th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    Component Type
+                  </th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    Supplier_Name
+                  </th>
+                  <th className="px-1 py-1 border min-w-[120px]">Scanned On</th>
+                  <th className="px-1 py-1 border min-w-[120px]">Fg Sr. No.</th>
+                  <th className="px-1 py-1 border min-w-[120px]">Asset tag</th>
+                  <th className="px-1 py-1 border min-w-[120px]">
+                    SAP Item Code
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {traceabilityData.map((item, index) => {
+                  const isLast = index === traceabilityData.length - 1;
+                  return (
+                    <tr
+                      key={index}
+                      ref={isLast ? lastRowRef : null}
+                      className="hover:bg-gray-100 text-center"
+                    >
+                      <td className="px-1 py-1 border">{item.PSNo}</td>
+                      <td className="px-1 py-1 border">{item.Model_Name}</td>
+                      <td className="px-1 py-1 border">
+                        {item.Reference_Barcode}
                       </td>
+                      <td className="px-1 py-1 border">
+                        {item.Component_Serial_Number}
+                      </td>
+                      <td className="px-1 py-1 border">
+                        {item.Component_Name}
+                      </td>
+                      <td className="px-1 py-1 border">
+                        {item.Component_Type}
+                      </td>
+                      <td className="px-1 py-1 border">{item.Supplier_Name}</td>
+                      <td className="px-1 py-1 border">
+                        {item.ScannedOn &&
+                          item.ScannedOn.replace("T", " ").replace("Z", "")}
+                      </td>
+                      <td className="px-1 py-1 border">{item.Fg_Sr_No}</td>
+                      <td className="px-1 py-1 border">{item.Asset_tag}</td>
+                      <td className="px-1 py-1 border">{item.SAP_Item_Code}</td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  );
+                })}
+                {!loading && traceabilityData.length === 0 && (
+                  <tr>
+                    <td colSpan={12} className="text-center py-4">
+                      No data found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            {loading && <Loader />}
+          </div>
         </div>
       </div>
     </div>
