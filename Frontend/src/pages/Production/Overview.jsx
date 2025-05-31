@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Title from "../../components/common/Title";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
@@ -14,16 +14,32 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const Overview = () => {
   const [loading, setLoading] = useState(false);
   const [variants, setVariants] = useState([]);
-  const [stages, setStages] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [stages, setStages] = useState([]);
   const [selectedStage, setSelectedStage] = useState(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [productionData, setProductionData] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(1000);
+  const [limit] = useState(50);
+  const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+
+  const observer = useRef();
+  const lastRowRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   const fetchModelVariants = async () => {
     try {
@@ -55,27 +71,22 @@ const Overview = () => {
     if (startTime && endTime && (selectedVariant || selectedStage)) {
       try {
         setLoading(true);
+
         const params = {
           startTime,
           endTime,
           stationCode: selectedStage?.value || null,
           page: pageNumber,
           limit,
+          model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
         };
-
-        if (selectedVariant) {
-          params.model = parseInt(selectedVariant.value, 10);
-        } else {
-          params.model = 0;
-        }
 
         const res = await axios.get(`${baseURL}prod/fgdata`, { params });
 
         if (res?.data?.success) {
-          setProductionData(res?.data?.data);
+          setProductionData((prev) => [...prev, ...res?.data?.data]);
           setTotalCount(res?.data?.totalCount);
-          setTotalPages(Math.ceil(res?.data?.totalCount / limit));
-          setPage(pageNumber);
+          setHasMore(res?.data?.data.length > 0);
         }
       } catch (error) {
         console.error("Failed to fetch production data:", error);
@@ -92,7 +103,14 @@ const Overview = () => {
     fetchStages();
   }, []);
 
+  useEffect(() => {
+    if (page === 1) return;
+    fetchProductionData(page);
+  }, [page]);
+
   const handleFgData = () => {
+    setProductionData([]);
+    setPage(1);
     fetchProductionData(1);
   };
 
@@ -103,20 +121,8 @@ const Overview = () => {
     setEndTime("");
     setProductionData([]);
     setPage(1);
-    setTotalPages(1);
   };
 
-  const handlePrevPage = () => {
-    if (page > 1) {
-      fetchProductionData(page - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      fetchProductionData(page + 1);
-    }
-  };
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-hidden max-w-full">
       <Title title="Production Overview" align="center" />
@@ -201,126 +207,90 @@ const Overview = () => {
           <span className="text-xl font-semibold">Summary</span>
         </div>
 
-        {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 my-4">
-          <Button
-            onClick={handlePrevPage}
-            disabled={page === 1 || loading}
-            bgColor={page === 1 || loading ? "bg-gray-400" : "bg-blue-500"}
-            textColor="text-white"
-          >
-            Previous
-          </Button>
-          <span className="font-semibold">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            onClick={handleNextPage}
-            disabled={page === totalPages || loading}
-            bgColor={
-              page === totalPages || loading ? "bg-gray-400" : "bg-blue-500"
-            }
-            textColor="text-white"
-          >
-            Next
-          </Button>
-        </div>
         <div className="bg-white border border-gray-300 rounded-md p-2">
           <div className="flex flex-wrap gap-1">
-            {/* Left Side - Detailed Table */}
+            {/* Right Side - Detailed Table */}
             <div className="w-full md:flex-1">
-              {loading ? (
-                <Loader />
-              ) : (
-                <div className="w-full max-h-[600px] overflow-x-auto">
-                  <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
-                    <thead className="bg-gray-200 sticky top-0 z-10 text-center">
-                      <tr>
-                        <th className="px-1 py-1 border max-w-[100px]">
-                          Sr.No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          Model_Name
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          Model_No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          Station_Code
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          Assembly Sr.No
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          Asset tag
-                        </th>
-                        <th className="px-1 py-1 border max-w-[100px]">
-                          Customer_QR
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          UserName
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          FG Serial_No.
-                        </th>
-                        <th className="px-1 py-1 border min-w-[100px]">
-                          CreatedOn
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {productionData.length > 0 ? (
-                        productionData.map((item, index) => (
-                          <tr
-                            key={index}
-                            className="hover:bg-gray-100 text-center"
-                          >
-                            <td className="px-1 py-1 border">{item.SrNo}</td>
-                            <td className="px-1 py-1 border">
-                              {item.Model_Name}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.ModelName}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.StationCode}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Assembly_Sr_No}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Asset_tag}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.Customer_QR}
-                            </td>
-                            <td className="px-1 py-1 border">
-                              {item.UserName}
-                            </td>
-                            <td className="px-1 py-1 border">{item.FG_SR}</td>
-                            <td className="px-1 py-1 border">
-                              {item.CreatedOn &&
-                                item.CreatedOn.replace("T", " ").replace(
-                                  "Z",
-                                  ""
-                                )}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={12} className="text-center py-4">
-                            No data found.
+              <div className="w-full max-h-[600px] overflow-x-auto">
+                <table className="min-w-full border bg-white text-xs text-left rounded-lg table-auto">
+                  <thead className="bg-gray-200 sticky top-0 z-10 text-center">
+                    <tr>
+                      <th className="px-1 py-1 border max-w-[100px]">Sr.No.</th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        Model_Name
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        Model_No.
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        Station_Code
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        Assembly Sr.No
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        Asset tag
+                      </th>
+                      <th className="px-1 py-1 border max-w-[100px]">
+                        Customer_QR
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        UserName
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        FG Serial_No.
+                      </th>
+                      <th className="px-1 py-1 border min-w-[100px]">
+                        CreatedOn
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productionData.map((item, index) => {
+                      const isLast = index === productionData.length - 1;
+                      return (
+                        <tr
+                          key={index}
+                          ref={isLast ? lastRowRef : null}
+                          className="hover:bg-gray-100 text-center"
+                        >
+                          <td className="px-1 py-1 border">{item.SrNo}</td>
+                          <td className="px-1 py-1 border">
+                            {item.Model_Name}
+                          </td>
+                          <td className="px-1 py-1 border">{item.ModelName}</td>
+                          <td className="px-1 py-1 border">
+                            {item.StationCode}
+                          </td>
+                          <td className="px-1 py-1 border">
+                            {item.Assembly_Sr_No}
+                          </td>
+                          <td className="px-1 py-1 border">{item.Asset_tag}</td>
+                          <td className="px-1 py-1 border">
+                            {item.Customer_QR}
+                          </td>
+                          <td className="px-1 py-1 border">{item.UserName}</td>
+                          <td className="px-1 py-1 border">{item.FG_SR}</td>
+                          <td className="px-1 py-1 border">
+                            {item.CreatedOn?.replace("T", " ").replace("Z", "")}
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      );
+                    })}
+                    {!loading && productionData.length === 0 && (
+                      <tr>
+                        <td colSpan={10} className="text-center py-4">
+                          No data found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                {loading && <Loader />}
+              </div>
             </div>
 
-            {/* Right Side - Controls and Summary */}
+            {/* Left Side - Controls and Summary */}
             <div className="w-full md:w-[30%] flex flex-col gap-2 overflow-x-hidden">
               <div className="flex flex-wrap gap-2 items-center justify-center my-4">
                 <Button
