@@ -73,7 +73,10 @@ const ComponentTraceabilityReport = () => {
 
       if (res?.data?.success) {
         setTraceabilityData((prev) => [...prev, ...res?.data?.data]);
-        setTotalCount(res?.data?.totalCount);
+        // Set total count only when it's the first page
+        if (pageNumber === 1) {
+          setTotalCount(res?.data?.totalCount);
+        }
         setHasMore(res?.data?.data.length > 0);
       }
     } catch (error) {
@@ -93,7 +96,7 @@ const ComponentTraceabilityReport = () => {
   }, [page]);
 
   const handleTraceabilityData = () => {
-    fetchTraceabilityData([]);
+    setTraceabilityData([]);
     setPage(1);
     fetchTraceabilityData(1);
   };

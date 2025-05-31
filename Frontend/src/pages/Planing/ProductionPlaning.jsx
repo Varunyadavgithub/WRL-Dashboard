@@ -64,22 +64,28 @@ const ProductionPlaning = () => {
   };
 
   const fetchProductionPlaningData = async () => {
-    if (!selectedPlan || !selectedPlanMonth || !selectedModelName) {
-      toast.error("Please select Plan Type, Plan Month Year and Model Name.");
+    if (!selectedPlan || !selectedPlanMonth) {
+      toast.error("Please select Plan Type and Plan Month Year.");
       return;
     }
+
     try {
       setLoading(true);
 
       const params = {
         planType: selectedPlan,
         planMonthYear: selectedPlanMonth.value,
-        matcode: selectedModelName.value,
       };
+
+      // Make matcode optional
+      if (selectedModelName) {
+        params.matcode = selectedModelName.value;
+      }
 
       const res = await axios.get(`${baseURL}planing/production-planing`, {
         params,
       });
+
       if (res?.data?.success) {
         setProductionPlaningData(res?.data?.data || []);
         toast.success("All Production Planing Data is fetched successfully.");
@@ -93,7 +99,7 @@ const ProductionPlaning = () => {
     }
   };
 
-  const handleUpdateProductionPlaningData = async () => {
+  const updateProductionPlaningData = async () => {
     if (
       !selectedModelName ||
       !selectedPlanMonth ||
@@ -101,9 +107,7 @@ const ProductionPlaning = () => {
       !remark ||
       !selectedPlan
     ) {
-      toast.error(
-        "Please select Model Name, Plan Month Year, Quentity, Remark and Plan Type."
-      );
+      toast.error("Please fill all required fields.");
       return;
     }
     try {
@@ -111,15 +115,17 @@ const ProductionPlaning = () => {
 
       const payload = {
         planQty: planQuentity,
-        remark: remark,
+        userCode: user?.usercode,
+        remark,
         matcode: selectedModelName.value,
         planMonthYear: selectedPlanMonth.value,
         planType: selectedPlan,
       };
 
-      const res = await axios.put(`${baseURL}planing/production-planing`, {
-        payload,
-      });
+      const res = await axios.put(
+        `${baseURL}planing/add-production-plan`,
+        payload
+      );
 
       if (res?.data?.success) {
         toast.success(res?.data?.message);
@@ -132,6 +138,20 @@ const ProductionPlaning = () => {
       console.error("Failed to fetch Production Planing Data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await updateProductionPlaningData();
+      await fetchProductionPlaningData();
+
+      setSelectedModelName(null);
+      setSelectedPlanMonth(null);
+      setPlanQuentity(0);
+      setRemark("");
+    } catch (error) {
+      console.error("Update or fetch failed:", error);
     }
   };
 
@@ -264,7 +284,7 @@ const ProductionPlaning = () => {
               bgColor="bg-yellow-300"
               textColor="text-black"
               className="font-semibold hover:bg-yellow-400"
-              // onClick={() => handleUpdateModelName()}
+              onClick={handleUpdate}
             >
               Update
             </Button>
@@ -302,7 +322,6 @@ const ProductionPlaning = () => {
                     <th className="px-1 py-1 border min-w-[120px]">
                       Created On
                     </th>
-                    <th className="px-1 py-1 border min-w-[120px]">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -327,7 +346,7 @@ const ProductionPlaning = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="text-center py-4">
+                      <td colSpan={9} className="text-center py-4">
                         No data found.
                       </td>
                     </tr>

@@ -85,7 +85,10 @@ const Overview = () => {
 
         if (res?.data?.success) {
           setProductionData((prev) => [...prev, ...res?.data?.data]);
-          setTotalCount(res?.data?.totalCount);
+          // Set total count only when it's the first page
+          if (pageNumber === 1) {
+            setTotalCount(res?.data?.totalCount);
+          }
           setHasMore(res?.data?.data.length > 0);
         }
       } catch (error) {
@@ -121,6 +124,7 @@ const Overview = () => {
     setEndTime("");
     setProductionData([]);
     setPage(1);
+    setTotalCount(0)
   };
 
   return (
@@ -170,30 +174,20 @@ const Overview = () => {
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div>
-            <InputField
-              label="Details"
-              type="text"
-              placeholder="Enter details"
-              className="max-w-64"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Button
-              bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
-              textColor={loading ? "text-white" : "text-black"}
-              className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
-              onClick={handleFgData}
-              disabled={loading}
-            >
-              Query
-            </Button>
-            <ExportButton
-              data={productionData}
-              filename="Production_Report_Data"
-            />
-          </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button
+            bgColor={loading ? "bg-gray-400" : "bg-blue-500"}
+            textColor={loading ? "text-white" : "text-black"}
+            className={`font-semibold ${loading ? "cursor-not-allowed" : ""}`}
+            onClick={handleFgData}
+            disabled={loading}
+          >
+            Query
+          </Button>
+          <ExportButton
+            data={productionData}
+            filename="Production_Report_Data"
+          />
         </div>
 
         <div className="mt-4 text-left font-bold text-lg">

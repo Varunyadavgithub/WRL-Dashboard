@@ -21,6 +21,11 @@ const TotalProduction = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(1000);
   const [totalCount, setTotalCount] = useState(0);
+  const departmentOption = [
+    { label: "Final", value: "final" },
+    { label: "Post Forming", value: "postforming" },
+  ];
+  const [selecedDep, setSelectedDep] = useState(departmentOption[0]);
 
   const fetchModelVariants = async () => {
     try {
@@ -113,7 +118,7 @@ const TotalProduction = () => {
       {/* Filters Section */}
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         {/* First Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           <SelectField
             label="Model Variant"
             options={variants}
@@ -121,6 +126,18 @@ const TotalProduction = () => {
             onChange={(e) =>
               setSelectedVariant(
                 variants.find((opt) => opt.value === e.target.value) || 0
+              )
+            }
+            className="max-w-64"
+          />
+          <SelectField
+            label="Department"
+            options={departmentOption}
+            value={selecedDep?.value || ""}
+            onChange={(e) =>
+              setSelectedDep(
+                departmentOption.find((opt) => opt.value === e.target.value) ||
+                  0
               )
             }
             className="max-w-64"

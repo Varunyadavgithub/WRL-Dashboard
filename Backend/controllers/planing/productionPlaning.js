@@ -40,26 +40,35 @@ export const getPlanMonth = async (_, res) => {
 export const productionPlaningData = async (req, res) => {
   const { planType, planMonthYear, matcode } = req.query;
 
-  if (!planType || !planMonthYear || !matcode) {
-    return res
-      .status(400)
-      .send("planType, planMonthYear and matcode are required");
+  // Only planType and planMonthYear are required
+  if (!planType || !planMonthYear) {
+    return res.status(400).send("planType and planMonthYear are required");
   }
 
   try {
-    const query = `
-      Select PlanNo, PlanMonthYear, m.Alias, PlanQty, PrintLbl, PlanType, Remark, u.username, CreatedOn from "PlanOrderPrint" as pop
-      join material m on m.matcode = pop.PlanMaterial
-      join users u on u.userCode = pop.CreatedBy
-      where planType=@planType and PlanMonthYear=@planMonthYear and pop.PlanMaterial=@matcode`;
-
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
-    const result = await pool
-      .request()
-      .input("planType", sql.VarChar, planType)
-      .input("planMonthYear", sql.Int, planMonthYear)
-      .input("matcode", sql.Int, matcode)
-      .query(query);
+    const request = pool.request();
+
+    request.input("planType", sql.VarChar, planType);
+    request.input("planMonthYear", sql.Int, planMonthYear);
+
+    if (matcode && matcode != 0) {
+      request.input("matcode", sql.Int, matcode);
+    }
+
+    const query = `
+      SELECT 
+        PlanNo, PlanMonthYear, m.Alias, PlanQty, PrintLbl, PlanType, Remark, 
+        u.username, CreatedOn 
+      FROM PlanOrderPrint AS pop
+      JOIN material m ON m.matcode = pop.PlanMaterial
+      JOIN users u ON u.userCode = pop.CreatedBy
+      WHERE planType = @planType AND PlanMonthYear = @planMonthYear
+      ${matcode && matcode != 0 ? "AND pop.PlanMaterial = @matcode" : ""}
+      order by PrintLbl desc
+    `;
+
+    const result = await request.query(query);
 
     res.status(200).json({ success: true, data: result.recordset });
     await pool.close();
@@ -70,20 +79,28 @@ export const productionPlaningData = async (req, res) => {
 };
 
 export const addProductionPlaningData = async (req, res) => {
-  const { planQty, remark, matcode, planMonthYear, planType } = req.body;
+  const { planQty, userCode, remark, matcode, planMonthYear, planType } =
+    req.body;
 
-  if (!planQty || !remark || !matcode || !planMonthYear || !planType) {
+  if (
+    !planQty ||
+    !userCode ||
+    !remark ||
+    !matcode ||
+    !planMonthYear ||
+    !planType
+  ) {
     return res
       .status(400)
       .send(
-        "planQty, remark, matcode, planMonthYear and planType are required"
+        "planQty, userCode, remark, matcode, planMonthYear and planType are required"
       );
   }
 
   try {
     const query = `
       UPDATE PlanOrderPrint 
-      SET PlanQty = @planQty, Remark = @remark 
+      SET PlanQty = @planQty, CreatedBy=@userCode, Remark = @remark 
       WHERE PlanMaterial = @matcode AND PlanMonthYear = @planMonthYear AND PlanType = @planType;
     `;
 
@@ -92,6 +109,7 @@ export const addProductionPlaningData = async (req, res) => {
     const result = await pool
       .request()
       .input("planQty", sql.NVarChar, planQty)
+      .input("userCode", sql.Int, userCode)
       .input("remark", sql.NVarChar, remark)
       .input("matcode", sql.NVarChar, matcode)
       .input("planMonthYear", sql.NVarChar, planMonthYear)
