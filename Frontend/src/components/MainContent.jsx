@@ -77,7 +77,9 @@ function MainContent() {
         />
 
         {/* Quality */}
-        <Route path="/quality/rework-report" element={<ReworkReport />} />
+        {canAccess([]) && (
+          <Route path="/quality/rework-report" element={<ReworkReport />} />
+        )}
         {canAccess([]) && (
           <Route path="/quality/brazing-report" element={<BrazingReport />} />
         )}

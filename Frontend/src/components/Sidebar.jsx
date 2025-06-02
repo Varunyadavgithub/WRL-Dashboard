@@ -47,7 +47,11 @@ const MENU_CONFIG = [
     icon: FaClipboardCheck,
     label: "Quality",
     items: [
-      { path: "/quality/rework-report", label: "Rework Report" },
+      {
+        path: "/quality/rework-report",
+        label: "Rework Report",
+        roles: ["admin"],
+      },
       {
         path: "/quality/brazing-report",
         label: "Brazing Report",
