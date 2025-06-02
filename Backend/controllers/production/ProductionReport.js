@@ -112,7 +112,8 @@ WHERE SrNo > @offset AND SrNo <= (@offset + @limit);
   }
 };
 
-export const fetchFGExportData = async (req, res) => {
+// Export Data
+export const fetchExportData = async (req, res) => {
   const { startTime, endTime, model, stationCode } = req.query;
 
   if (!startTime || !endTime || !stationCode) {

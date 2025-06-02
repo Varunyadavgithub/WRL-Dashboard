@@ -93,7 +93,8 @@ export const generateReport = async (req, res) => {
   }
 };
 
-export const fetchComponentTracabilityExportData = async (req, res) => {
+// Export Data
+export const fetchExportData = async (req, res) => {
   const { startTime, endTime, model } = req.query;
 
   if (!startTime || !endTime) {

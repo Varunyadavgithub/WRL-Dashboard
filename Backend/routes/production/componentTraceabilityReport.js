@@ -1,15 +1,12 @@
 import express from "express";
 import {
-  fetchComponentTracabilityExportData,
+  fetchExportData,
   generateReport,
 } from "../../controllers/production/componentTraceabilityReport.js";
 
 const route = express.Router();
 
 route.get("/component-traceability", generateReport);
-route.get(
-  "/component-traceability-export-data",
-  fetchComponentTracabilityExportData
-);
+route.get("/export-component-traceability", fetchExportData);
 
 export default route;

@@ -76,9 +76,42 @@ const TotalProduction = () => {
         setPage(pageNumber);
       }
     } catch (error) {
-      console.error("Failed to fetch production data:", error);
+      console.error("Failed to fetch total production data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExportData = async () => {
+    if (!startTime || !endTime) {
+      toast.error("Please select Time Range.");
+      return;
+    }
+
+    try {
+      const params = {
+        startDate: startTime,
+        endDate: endTime,
+        department: selecedDep.value,
+      };
+
+      if (selectedVariant) {
+        params.model = parseInt(selectedVariant.value, 10);
+      } else {
+        params.model = 0;
+      }
+
+      const res = await axios.get(`${baseURL}prod/export-total-production`, {
+        params,
+      });
+
+      if (res?.data?.success) {
+        return res?.data?.data;
+      }
+      return [];
+    } catch (error) {
+      console.error("Failed to fetch export total production data:", error);
+      return [];
     }
   };
 
@@ -175,7 +208,12 @@ const TotalProduction = () => {
             >
               Query
             </Button>
-            <ExportButton />
+            {totalProductionData && totalProductionData.length > 0 && (
+              <ExportButton
+                fetchData={fetchExportData}
+                filename="Total_Production_Report"
+              />
+            )}
           </div>
 
           {/* Count */}

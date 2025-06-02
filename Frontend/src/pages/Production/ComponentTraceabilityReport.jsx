@@ -99,12 +99,11 @@ const ComponentTraceabilityReport = () => {
       };
 
       const res = await axios.get(
-        `${baseURL}prod/component-traceability-export-data`,
+        `${baseURL}prod/export-component-traceability`,
         {
           params,
         }
       );
-console.log(res)
       if (res?.data?.success) {
         return res?.data?.result;
       }
@@ -187,7 +186,7 @@ console.log(res)
             {traceabilityData && traceabilityData.length > 0 && (
               <ExportButton
                 fetchData={fetchExportData}
-                filename="component_traceability_report"
+                filename="Component_Traceability_Report"
               />
             )}
 

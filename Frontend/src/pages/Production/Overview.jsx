@@ -101,7 +101,7 @@ const Overview = () => {
     }
   };
 
-  const fetchExportProductionData = async () => {
+  const fetchExportData = async () => {
     if (startTime && endTime && (selectedVariant || selectedStage)) {
       try {
         const params = {
@@ -111,7 +111,9 @@ const Overview = () => {
           model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
         };
 
-        const res = await axios.get(`${baseURL}prod/export-fgdata`, { params });
+        const res = await axios.get(`${baseURL}prod/export-production-report`, {
+          params,
+        });
 
         if (res?.data?.success) {
           return res.data.data;
@@ -211,8 +213,8 @@ const Overview = () => {
           </Button>
           {productionData && productionData.length > 0 && (
             <ExportButton
-              fetchData={fetchExportProductionData}
-              filename="Production_Report_Data"
+              fetchData={fetchExportData}
+              filename="Production_Report"
             />
           )}
         </div>
