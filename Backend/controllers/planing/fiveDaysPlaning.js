@@ -52,3 +52,23 @@ export const downloadFile = (req, res) => {
     }
   });
 };
+
+// Delete file controller
+export const deleteFile = (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(uploadDir, filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ success: false, message: "File not found" });
+  }
+
+  try {
+    fs.unlinkSync(filePath);
+    res
+      .status(200)
+      .json({ success: true, message: "File deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error.message);
+    res.status(500).json({ success: false, message: "Failed to delete file" });
+  }
+};

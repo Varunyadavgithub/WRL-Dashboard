@@ -120,6 +120,34 @@ const FiveDaysPlanning = () => {
     }
   };
 
+  const handleDeleteFile = async (file) => {
+    if (
+      !window.confirm(`Are you sure you want to delete "${file.filename}"?`)
+    ) {
+      return;
+    }
+    try {
+      setLoading(true);
+
+      const filename = file.url.split("/").pop();
+
+      await axios.delete(`${baseURL}planing/delete/${filename}`);
+
+      setFiles((prevFiles) => prevFiles.filter((f) => f.id !== file.id));
+
+      if (activePreviewId === file.id) {
+        setActivePreviewId(null);
+        setPreviewData(null);
+      }
+      toast.success("File deleted successfully");
+    } catch (error) {
+      console.error("File download failed", error);
+      toast.error("File delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 overflow-x-auto max-w-full">
       <Title title="Five Days Planning" align="center" />
