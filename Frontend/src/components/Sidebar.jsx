@@ -48,10 +48,18 @@ const MENU_CONFIG = [
     label: "Quality",
     items: [
       { path: "/quality/rework-report", label: "Rework Report" },
-      { path: "/quality/brazing-report", label: "Brazing Report" },
-      { path: "/quality/gas-charging-report", label: "Gas Charging Report" },
-      { path: "/quality/est-report", label: "EST Report" },
-      { path: "/quality/mft-report", label: "MFT Report" },
+      {
+        path: "/quality/brazing-report",
+        label: "Brazing Report",
+        roles: ["admin"],
+      },
+      {
+        path: "/quality/gas-charging-report",
+        label: "Gas Charging Report",
+        roles: ["admin"],
+      },
+      { path: "/quality/est-report", label: "EST Report", roles: ["admin"] },
+      { path: "/quality/mft-report", label: "MFT Report", roles: ["admin"] },
       { path: "/quality/fpa", label: "FPA", roles: ["fpa", "quality manager"] },
       { path: "/quality/fpa-report", label: "FPA Report" },
       {

@@ -83,7 +83,7 @@ export const getBarcodeDetails = async (req, res) => {
       "1220004",
       "1230012",
     ];
-    
+
     const selectedStationCodes =
       department === "final" ? finalStationCodes : postFormingStationCodes;
 

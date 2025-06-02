@@ -78,13 +78,21 @@ function MainContent() {
 
         {/* Quality */}
         <Route path="/quality/rework-report" element={<ReworkReport />} />
-        <Route path="/quality/brazing-report" element={<BrazingReport />} />
-        <Route
-          path="/quality/gas-charging-report"
-          element={<GasChargingReport />}
-        />
-        <Route path="/quality/est-report" element={<ESTReport />} />
-        <Route path="/quality/mft-report" element={<MFTReport />} />
+        {canAccess([]) && (
+          <Route path="/quality/brazing-report" element={<BrazingReport />} />
+        )}
+        {canAccess([]) && (
+          <Route
+            path="/quality/gas-charging-report"
+            element={<GasChargingReport />}
+          />
+        )}
+        {canAccess([]) && (
+          <Route path="/quality/est-report" element={<ESTReport />} />
+        )}
+        {canAccess([]) && (
+          <Route path="/quality/mft-report" element={<MFTReport />} />
+        )}
 
         {/* 🚫 Restricted Route: Only FPA, Quality Manager and Admin */}
         {canAccess(["fpa", "quality manager"]) && (
