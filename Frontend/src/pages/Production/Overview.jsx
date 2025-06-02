@@ -101,6 +101,31 @@ const Overview = () => {
     }
   };
 
+  const fetchExportProductionData = async () => {
+    if (startTime && endTime && (selectedVariant || selectedStage)) {
+      try {
+        const params = {
+          startTime,
+          endTime,
+          stationCode: selectedStage?.value || null,
+          model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
+        };
+
+        const res = await axios.get(`${baseURL}prod/export-fgdata`, { params });
+
+        if (res?.data?.success) {
+          return res.data.data;
+        }
+        return [];
+      } catch (error) {
+        console.error("Failed to fetch production data:", error);
+        return [];
+      }
+    } else {
+      toast.error("Please select Stage and Time Range.");
+    }
+  };
+
   useEffect(() => {
     fetchModelVariants();
     fetchStages();
@@ -124,7 +149,7 @@ const Overview = () => {
     setEndTime("");
     setProductionData([]);
     setPage(1);
-    setTotalCount(0)
+    setTotalCount(0);
   };
 
   return (
@@ -184,8 +209,9 @@ const Overview = () => {
           >
             Query
           </Button>
+
           <ExportButton
-            data={productionData}
+            fetchData={fetchExportProductionData}
             filename="Production_Report_Data"
           />
         </div>
