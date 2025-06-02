@@ -66,10 +66,12 @@ function StageHistoryReport() {
             >
               Query
             </Button>
-            <ExportButton
-              data={stageHistoryData}
-              filename="stage_history_report"
-            />
+            {stageHistoryData && stageHistoryData.length > 0 && (
+              <ExportButton
+                data={stageHistoryData}
+                filename="Stage_History_Report"
+              />
+            )}
           </div>
           {/* Product Name */}
           <div className="mt-4 text-left font-bold text-lg">

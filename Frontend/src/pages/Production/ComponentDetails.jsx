@@ -58,10 +58,12 @@ const ComponentDetails = () => {
             >
               Query
             </Button>
-            <ExportButton
-              data={componentDetailsData}
-              filename="stage_history_report"
-            />
+            {componentDetailsData && componentDetailsData.length > 0 && (
+              <ExportButton
+                data={componentDetailsData}
+                filename="Component_Details_Report"
+              />
+            )}
           </div>
 
           <div className="mt-4 text-left font-bold text-lg">
