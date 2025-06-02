@@ -27,7 +27,6 @@ function StageHistoryReport() {
       });
       const data = res.data?.result?.recordsets[0] || [];
       setStageHistoryData(data);
-console.log(data)
       if (data.length > 0 && data[0].MaterialName) {
         setProductName(data[0].MaterialName);
       } else {
