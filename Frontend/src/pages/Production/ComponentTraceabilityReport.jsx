@@ -86,6 +86,38 @@ const ComponentTraceabilityReport = () => {
     }
   };
 
+  const fetchExportData = async () => {
+    if (!startTime || !endTime) {
+      toast.error("Please select Time Range.");
+      return;
+    }
+    try {
+      const params = {
+        startTime,
+        endTime,
+        model: selectedVariant ? parseInt(selectedVariant.value, 10) : 0,
+      };
+
+      const res = await axios.get(
+        `${baseURL}prod/component-traceability-export-data`,
+        {
+          params,
+        }
+      );
+console.log(res)
+      if (res?.data?.success) {
+        return res?.data?.result;
+      }
+      return [];
+    } catch (error) {
+      console.error(
+        "Failed to fetch export component traceability data:",
+        error
+      );
+      return [];
+    }
+  };
+
   useEffect(() => {
     fetchModelVariants();
   }, []);
@@ -152,10 +184,12 @@ const ComponentTraceabilityReport = () => {
               Query
             </Button>
 
-            <ExportButton
-              data={traceabilityData}
-              filename="component_traceability_report"
-            />
+            {traceabilityData && traceabilityData.length > 0 && (
+              <ExportButton
+                fetchData={fetchExportData}
+                filename="component_traceability_report"
+              />
+            )}
 
             {/* Count */}
             <div className="mt-4 text-left font-bold text-lg">

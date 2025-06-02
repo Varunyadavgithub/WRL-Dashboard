@@ -209,11 +209,12 @@ const Overview = () => {
           >
             Query
           </Button>
-
-          <ExportButton
-            fetchData={fetchExportProductionData}
-            filename="Production_Report_Data"
-          />
+          {productionData && productionData.length > 0 && (
+            <ExportButton
+              fetchData={fetchExportProductionData}
+              filename="Production_Report_Data"
+            />
+          )}
         </div>
 
         <div className="mt-4 text-left font-bold text-lg">
