@@ -1,7 +1,7 @@
 import sql, { dbConfig1 } from "../../config/db.js";
 
 export const getHourlySummary = async (req, res) => {
-  const { stationCode, startDate, endDate } = req.query;
+  const { stationCode, startDate, endDate, model, line } = req.query;
 
   if (!stationCode || !startDate || !endDate) {
     return res.status(400).send("Missing stationCode, startDate or endDate.");
@@ -11,52 +11,65 @@ export const getHourlySummary = async (req, res) => {
     const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
     const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
+    let userRoleCondition = "";
+    if (stationCode == 1220010) {
+      if (line == "1") {
+        userRoleCondition = " AND u.UserRole = '224006' ";
+      } else if (line == "2") {
+        userRoleCondition = " AND u.UserRole = '224007' ";
+      }
+    } else if (stationCode == 1220005) {
+      if (line == "1") {
+        userRoleCondition = " AND u.UserRole = '225002' ";
+      } else if (line == "2") {
+        userRoleCondition = " AND u.UserRole = '225001' ";
+      }
+    }
+
     const query = `
-      WITH ProductionDetails AS (
-        SELECT 
-            a.PSNo, 
-            c.Name, 
-            b.Material, 
-            a.StationCode, 
-            a.ProcessCode, 
-            a.ActivityOn, 
-            DATEPART(HOUR, a.ActivityOn) AS TIMEHOUR,  
-            DATEPART(DAY, a.ActivityOn) AS TIMEDAY, 
-            a.ActivityType, 
-            b.Type
-        FROM ProcessActivity a
-        INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo
-        INNER JOIN Material c ON b.Material = c.MatCode
-        INNER JOIN Users u ON a.Operator = u.UserCode
-        WHERE 
-            a.StationCode = @stationCode
-            AND a.ActivityType = 5
-            AND a.ActivityOn BETWEEN @startDate AND @endDate
-            AND b.Type NOT IN (0, 200)
-      ),
-      Summary AS (
-        SELECT 
-            pd.TIMEDAY,
-            pd.TIMEHOUR,
-            COUNT(pd.PSNo) AS Loading_Count
-        FROM ProductionDetails pd
-        GROUP BY pd.TIMEHOUR, pd.TIMEDAY
-      )
-      SELECT 
-        CONCAT('H', ROW_NUMBER() OVER (ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-        su.TIMEHOUR, 
-        su.Loading_Count AS COUNT
-      FROM Summary su
-      ORDER BY su.TIMEHOUR;
+WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    JOIN Users u ON b.Operator = u.UserCode
+    WHERE 
+        c.StationCode = @stationCode
+        AND b.ActivityType = 5
+        AND b.ActivityOn BETWEEN @startDate AND @endDate
+        ${model && model !== "0" ? "AND Psno.Material = @model" : ""}
+        ${userRoleCondition}
+    GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
+)
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
     `;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
-    const result = await pool
-      .request()
-      .input("stationCode", sql.Int, parseInt(stationCode))
-      .input("startDate", sql.DateTime, istStart)
-      .input("endDate", sql.DateTime, istEnd)
-      .query(query);
+    const request = pool.request();
+
+    request.input("stationCode", sql.Int, parseInt(stationCode));
+    request.input("startDate", sql.DateTime, istStart);
+    request.input("endDate", sql.DateTime, istEnd);
+
+    if (model && model !== "0") {
+      request.input("model", sql.VarChar, model);
+    }
+
+    const result = await request.query(query);
 
     res.json(result.recordset);
     await pool.close();
@@ -67,7 +80,7 @@ export const getHourlySummary = async (req, res) => {
 };
 
 export const getHourlyModelCount = async (req, res) => {
-  const { stationCode, startDate, endDate, model } = req.query;
+  const { stationCode, startDate, endDate, model, line } = req.query;
 
   if (!stationCode || !startDate || !endDate) {
     return res.status(400).send("Missing stationCode, startDate, or endDate.");
@@ -77,37 +90,67 @@ export const getHourlyModelCount = async (req, res) => {
     const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
     const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
+    let userRoleCondition = "";
+    if (stationCode == 1220010) {
+      if (line == "1") {
+        userRoleCondition = " AND u.UserRole = '224006' ";
+      } else if (line == "2") {
+        userRoleCondition = " AND u.UserRole = '224007' ";
+      }
+    } else if (stationCode == 1220005) {
+      if (line == "1") {
+        userRoleCondition = " AND u.UserRole = '225002' ";
+      } else if (line == "2") {
+        userRoleCondition = " AND u.UserRole = '225001' ";
+      }
+    }
+
     const query = `
-      WITH DUMDATA AS (
-        SELECT 
-          a.PSNo,
-          c.Name,
-          b.Material,
-          a.StationCode,
-          a.ProcessCode,
-          a.ActivityOn,
-          DATEPART(HOUR, a.ActivityOn) AS TIMEHOUR,
-          DATEPART(DAY, a.ActivityOn) AS TIMEDAY,
-          a.ActivityType,
-          b.Type
-        FROM ProcessActivity a
-        INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo
-        INNER JOIN Material c ON b.Material = c.MatCode
-        INNER JOIN Users u ON a.Operator = u.UserCode
-        WHERE
-          a.StationCode = @stationCode AND
-          a.ActivityType = 5 AND
-          a.ActivityOn BETWEEN @startDate AND @endDate AND
-          b.Type NOT IN (0, 200)
-          ${model && model !== "0" ? "AND b.Material = @model" : ""}
-      )
-      SELECT 
-        dd.TIMEHOUR,
-        dd.Name,
-        COUNT(dd.Name) AS ModelCount
-      FROM DUMDATA dd
-      GROUP BY dd.TIMEHOUR, dd.Name
-      ORDER BY dd.TIMEHOUR, ModelCount;
+WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        Psno.DocNo,
+        Psno.Material,
+        Psno.Serial,
+        Psno.VSerial,
+        Psno.Alias,
+        Psno.Type,
+        b.StationCode,
+        c.Name AS Station_Name,
+        b.ActivityOn,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        b.Operator,
+        m.Name AS Material_Name
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    JOIN Users u ON b.Operator = u.UserCode
+    WHERE 
+          c.StationCode = @stationCode AND
+          b.ActivityType = 5 AND
+          b.ActivityOn BETWEEN @startDate AND @endDate
+           ${model && model !== "0" ? "AND Psno.Material = @model" : ""}
+           ${userRoleCondition}
+),
+HourlyCount AS (
+    SELECT 
+        TIMEHOUR,
+        Material_Name,
+        COUNT(*) AS Loading_Count
+    FROM HourlySummary
+    GROUP BY TIMEHOUR, Material_Name
+)
+SELECT 
+    TIMEHOUR,
+    Material_Name,
+    Loading_Count AS COUNT
+FROM HourlyCount
+ORDER BY TIMEHOUR, Material_Name;
     `;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
