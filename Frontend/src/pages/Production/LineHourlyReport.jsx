@@ -10,12 +10,20 @@ import {
   Legend,
 } from "chart.js";
 import DateTimePicker from "../../components/common/DateTimePicker";
-import ExportButton from "../../components/common/ExportButton";
-import LineHourlyReportTables from "../../components/LineHourlyReportTables";
-import LineHourlyReportCharts from "../../components/LineHourlyReportCharts";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Loader from "../../components/common/Loader";
+import FinalFreezer from "../../components/lineHourly/FinalLine/FinalFreezer";
+import FinalChoc from "../../components/lineHourly/FinalLine/FinalChoc";
+import FinalSUS from "../../components/lineHourly/FinalLine/FinalSUS";
+import FinalCategoryCount from "../../components/lineHourly/FinalLine/FinalCategoryCount";
+import PostFormingFreezerA from "../../components/lineHourly/PostForming/PostFormingFreezerA";
+import PostFormingFreezerB from "../../components/lineHourly/PostForming/PostFormingFreezerB";
+import PostFormingSUS from "../../components/lineHourly/PostForming/PostFormingSUS";
+import PostFormingCategoryCount from "../../components/lineHourly/PostForming/PostFormingCategoryCount";
+import FormingA from "../../components/lineHourly/Forming/FormingA";
+import FormingB from "../../components/lineHourly/Forming/FormingB";
+import FormingCategoryCount from "../../components/lineHourly/Forming/FormingCategoryCount";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -32,16 +40,16 @@ const LineHourlyReport = () => {
   const [finalFreezerData, setFinalFreezerData] = useState([]);
   const [finalChocData, setFinalChocData] = useState([]);
   const [finalSUSData, setFinalSUSData] = useState([]);
+  const [finalCategoryCountData, setFinalCategoryCountData] = useState([]);
 
   const [postFormingFreezerAData, setPostFormingFreezerAData] = useState([]);
   const [postFormingFreezerBData, setPostFormingFreezerBData] = useState([]);
   const [postFormingSUSData, setPostFormingSUSData] = useState([]);
+  const [postCategoryCountData, setPostCategoryCountData] = useState([]);
 
   const [formingFOMAData, setFormingFOMAData] = useState([]);
   const [formingFOMBData, setFormingFOMBData] = useState([]);
   const [formingCategoryData, setFormingCategoryData] = useState([]);
-
-  const [categoryCountData, setCategoryCountData] = useState([]);
 
   // API Base URL
   const API_BASE_URL = `${baseURL}prod`;
@@ -65,7 +73,8 @@ const LineHourlyReport = () => {
     setFormingFOMAData([]);
     setFormingFOMBData([]);
     setFormingCategoryData([]);
-    setCategoryCountData([]);
+    setPostCategoryCountData([]);
+    setFinalCategoryCountData([]);
 
     // Common request parameters
     const params = {
@@ -99,7 +108,7 @@ const LineHourlyReport = () => {
           const res4 = await axios.get(`${API_BASE_URL}/final-hp-cat`, {
             params,
           });
-          setCategoryCountData(res4?.data || []);
+          setFinalCategoryCountData(res4?.data || []);
         } catch (error) {
           console.error("Error fetching Final Line data:", error);
           toast.error("Failed to fetch Final Line data");
@@ -130,7 +139,7 @@ const LineHourlyReport = () => {
           const res4 = await axios.get(`${API_BASE_URL}/post-hp-cat`, {
             params,
           });
-          setCategoryCountData(res4?.data || []);
+          setPostCategoryCountData(res4?.data || []);
         } catch (error) {
           console.error("Error fetching Post Forming data:", error);
           toast.error("Failed to fetch Post Forming data");
@@ -166,72 +175,6 @@ const LineHourlyReport = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const tableConfigurations = {
-    final_line: {
-      tables: [
-        {
-          title: "Final Freezer",
-          data: finalFreezerData,
-        },
-
-        {
-          title: "Final Choc",
-          data: finalChocData,
-        },
-
-        {
-          title: "Final SUS",
-          data: finalSUSData,
-        },
-
-        {
-          title: "Category Count",
-          data: categoryCountData,
-        },
-      ],
-    },
-
-    post_forming: {
-      tables: [
-        {
-          title: "Post Foam Frz A",
-          data: postFormingFreezerAData,
-        },
-        {
-          title: "Post Foam Frz B",
-          data: postFormingFreezerBData,
-        },
-
-        {
-          title: "Post Foam SUS",
-          data: postFormingSUSData,
-        },
-
-        {
-          title: "Category Count",
-          data: categoryCountData,
-        },
-      ],
-    },
-
-    forming: {
-      tables: [
-        {
-          title: "Forming A",
-          data: formingFOMAData,
-        },
-        {
-          title: "Forming B",
-          data: formingFOMBData,
-        },
-        {
-          title: "Category Count",
-          data: formingCategoryData,
-        },
-      ],
-    },
   };
 
   // Auto Refresh Logic
@@ -320,11 +263,7 @@ const LineHourlyReport = () => {
                 >
                   Query
                 </Button>
-                <ExportButton />
               </div>
-              {/* <div className="text-left font-bold text-lg">
-                COUNT: <span className="text-blue-700">0</span>
-              </div> */}
             </div>
           </div>
         </div>
@@ -338,16 +277,58 @@ const LineHourlyReport = () => {
             <Loader />
           ) : (
             <>
-              <LineHourlyReportTables
-                tableConfigurations={tableConfigurations}
-                lineType={lineType}
-              />
+              {lineType === "final_line" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FinalFreezer
+                      title={"Final Freezer"}
+                      data={finalFreezerData}
+                    />
+                    <FinalChoc title={"Final Choc"} data={finalChocData} />
+                    <FinalSUS title={"Final SUS"} data={finalSUSData} />
+                    <FinalCategoryCount
+                      title={"Category Count"}
+                      data={finalCategoryCountData}
+                    />
+                  </div>
+                </>
+              )}
 
-              {/* Charts Component */}
-              <LineHourlyReportCharts
-                tableConfigurations={tableConfigurations}
-                lineType={lineType}
-              />
+              {lineType === "post_forming" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <PostFormingFreezerA
+                      title={"Foam Frz A"}
+                      data={postFormingFreezerAData}
+                    />
+                    <PostFormingFreezerB
+                      title={"Post Foam Frz B"}
+                      data={postFormingFreezerBData}
+                    />
+                    <PostFormingSUS
+                      title={"Post Foam SUS"}
+                      data={postFormingSUSData}
+                    />
+                    <PostFormingCategoryCount
+                      title={"Category Count"}
+                      data={postCategoryCountData}
+                    />
+                  </div>
+                </>
+              )}
+
+              {lineType === "forming" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FormingA title={"Forming A"} data={formingFOMAData} />
+                    <FormingB title={"Forming B"} data={formingFOMBData} />
+                    <FormingCategoryCount
+                      title={"Category Count"}
+                      data={formingCategoryData}
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
