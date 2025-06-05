@@ -15,6 +15,7 @@ import LineHourlyReportTables from "../../components/LineHourlyReportTables";
 import LineHourlyReportCharts from "../../components/LineHourlyReportCharts";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Loader from "../../components/common/Loader";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -31,159 +32,137 @@ const LineHourlyReport = () => {
   const [finalFreezerData, setFinalFreezerData] = useState([]);
   const [finalChocData, setFinalChocData] = useState([]);
   const [finalSUSData, setFinalSUSData] = useState([]);
+
   const [postFormingFreezerAData, setPostFormingFreezerAData] = useState([]);
   const [postFormingFreezerBData, setPostFormingFreezerBData] = useState([]);
   const [postFormingSUSData, setPostFormingSUSData] = useState([]);
+
   const [formingFOMAData, setFormingFOMAData] = useState([]);
   const [formingFOMBData, setFormingFOMBData] = useState([]);
   const [formingCategoryData, setFormingCategoryData] = useState([]);
+
   const [categoryCountData, setCategoryCountData] = useState([]);
 
   // API Base URL
   const API_BASE_URL = `${baseURL}prod`;
 
-  // Fetch data for different line types and tables
+  // Fetch data for different line types
   const fetchHourlyReport = async () => {
     if (!startTime || !endTime) {
       toast.error("Please select Time Range.");
       return;
     }
+
     setLoading(true);
+
+    // Reset previous data before setting new data
+    setFinalFreezerData([]);
+    setFinalChocData([]);
+    setFinalSUSData([]);
+    setPostFormingFreezerAData([]);
+    setPostFormingFreezerBData([]);
+    setPostFormingSUSData([]);
+    setFormingFOMAData([]);
+    setFormingFOMBData([]);
+    setFormingCategoryData([]);
+    setCategoryCountData([]);
+
+    // Common request parameters
+    const params = {
+      StartTime: startTime,
+      EndTime: endTime,
+    };
+
     try {
-      const apiCalls = {
-        final_line: [
-          axios.get(`${API_BASE_URL}/final-hp-frz`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+      // Handle Final Line data
+      if (lineType === "final_line") {
+        try {
+          // Final Freezer
+          const res1 = await axios.get(`${API_BASE_URL}/final-hp-frz`, {
+            params,
+          });
+          setFinalFreezerData(res1?.data || []);
 
-          axios.get(`${API_BASE_URL}/final-hp-choc`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+          // Final Choc
+          const res2 = await axios.get(`${API_BASE_URL}/final-hp-choc`, {
+            params,
+          });
+          setFinalChocData(res2?.data || []);
 
-          axios.get(`${API_BASE_URL}/final-hp-sus`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+          // Final SUS
+          const res3 = await axios.get(`${API_BASE_URL}/final-hp-sus`, {
+            params,
+          });
+          setFinalSUSData(res3?.data || []);
 
-          axios.get(`${API_BASE_URL}/final-hp-cat`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
-        ],
+          // Category Count
+          const res4 = await axios.get(`${API_BASE_URL}/final-hp-cat`, {
+            params,
+          });
+          setCategoryCountData(res4?.data || []);
+        } catch (error) {
+          console.error("Error fetching Final Line data:", error);
+          toast.error("Failed to fetch Final Line data");
+        }
+      }
+      // Handle Post Forming data
+      else if (lineType === "post_forming") {
+        try {
+          // Post Forming Freezer A
+          const res1 = await axios.get(`${API_BASE_URL}/post-hp-frz-a`, {
+            params,
+          });
+          setPostFormingFreezerAData(res1?.data || []);
 
-        post_forming: [
-          axios.get(`${API_BASE_URL}/post-hp-frz-a`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+          // Post Forming Freezer B
+          const res2 = await axios.get(`${API_BASE_URL}/post-hp-frz-b`, {
+            params,
+          });
+          setPostFormingFreezerBData(res2?.data || []);
 
-          axios.get(`${API_BASE_URL}/post-hp-frz-b`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+          // Post Forming SUS
+          const res3 = await axios.get(`${API_BASE_URL}/post-hp-sus`, {
+            params,
+          });
+          setPostFormingSUSData(res3?.data || []);
 
-          axios.get(`${API_BASE_URL}/post-hp-sus`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
+          // Category Count
+          const res4 = await axios.get(`${API_BASE_URL}/post-hp-cat`, {
+            params,
+          });
+          setCategoryCountData(res4?.data || []);
+        } catch (error) {
+          console.error("Error fetching Post Forming data:", error);
+          toast.error("Failed to fetch Post Forming data");
+        }
+      }
+      // Handle Forming data
+      else if (lineType === "forming") {
+        try {
+          // Forming FOM A
+          const res1 = await axios.get(`${API_BASE_URL}/forming-hp-fom-a`, {
+            params,
+          });
+          setFormingFOMAData(res1?.data || []);
 
-          axios.get(`${API_BASE_URL}/post-hp-cat`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
-        ],
+          // Forming FOM B
+          const res2 = await axios.get(`${API_BASE_URL}/forming-hp-fom-b`, {
+            params,
+          });
+          setFormingFOMBData(res2?.data || []);
 
-        forming: [
-          axios.get(`${API_BASE_URL}/forming-hp-fom-a`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
-
-          axios.get(`${API_BASE_URL}/forming-hp-fom-b`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
-
-          axios.get(`${API_BASE_URL}/forming-hp-fom-cat`, {
-            params: {
-              StartTime: startTime,
-              EndTime: endTime,
-            },
-          }),
-        ],
-      };
-
-      const apiResults = await Promise.all(
-        apiCalls[lineType].map(async (call) => {
-          try {
-            const response = await call;
-            return response;
-          } catch (error) {
-            console.error(`API Call Error: ${error.message}`);
-            console.error(`Request URL: ${error.config.url}`);
-            console.error(`Request Params:`, error.config.params);
-            return { data: [] };
-          }
-        })
-      );
-
-      // Reset previous data before setting new data
-      setFinalFreezerData([]);
-      setFinalChocData([]);
-      setFinalSUSData([]);
-      setPostFormingFreezerAData([]);
-      setPostFormingFreezerBData([]);
-      setPostFormingSUSData([]);
-      setFormingFOMAData([]);
-      setFormingFOMBData([]);
-      setFormingCategoryData([]);
-      setCategoryCountData([]);
-
-      switch (lineType) {
-        case "final_line":
-          setFinalFreezerData(apiResults[0].data);
-          setFinalChocData(apiResults[1].data);
-          setFinalSUSData(apiResults[2].data);
-          setCategoryCountData(apiResults[3].data);
-          break;
-
-        case "post_forming":
-          setPostFormingFreezerAData(apiResults[0].data);
-          setPostFormingFreezerBData(apiResults[1].data);
-          setPostFormingSUSData(apiResults[2].data);
-          setCategoryCountData(apiResults[3].data);
-          break;
-
-        case "forming":
-          setFormingFOMAData(apiResults[0].data);
-          setFormingFOMBData(apiResults[1].data);
-          setFormingCategoryData(apiResults[2].data);
-          break;
+          // Forming Category
+          const res3 = await axios.get(`${API_BASE_URL}/forming-hp-fom-cat`, {
+            params,
+          });
+          setFormingCategoryData(res3?.data || []);
+        } catch (error) {
+          console.error("Error fetching Forming data:", error);
+          toast.error("Failed to fetch Forming data");
+        }
       }
     } catch (error) {
-      console.error("Error fetching hourly report:", error);
+      console.error("Error in Fetch Hourly Report:", error);
     } finally {
       setLoading(false);
     }
@@ -255,24 +234,13 @@ const LineHourlyReport = () => {
     },
   };
 
-  // Auto Refresh Logic (Optional)
-
+  // Auto Refresh Logic
   useEffect(() => {
-    let intervalId;
-    if (autoRefresh && startTime && endTime) {
-      // Set up an interval to refresh data periodically
-      intervalId = setInterval(() => {
-        fetchHourlyReport();
-      }, 30000); // Refresh every 30 seconds
+    if (autoRefresh) {
+      const interval = setInterval(fetchHourlyReport, 300000); // auto-refresh every 5 min
+      return () => clearInterval(interval);
     }
-
-    // Cleanup interval on component unmount or when conditions change
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [autoRefresh, startTime, endTime, lineType]);
+  }, [autoRefresh, lineType, startTime, endTime]);
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
@@ -363,20 +331,25 @@ const LineHourlyReport = () => {
       </div>
 
       {/* Summary Section */}
-
       <div className="bg-purple-100 border border-dashed border-purple-400 p-4 mt-4 rounded-md">
         <div className="flex flex-col bg-white border border-gray-300 rounded-md p-2">
           {/* Tables Component */}
-          <LineHourlyReportTables
-            tableConfigurations={tableConfigurations}
-            lineType={lineType}
-          />
+          {loading ? (
+            <Loader />
+          ) : (
+            <>
+              <LineHourlyReportTables
+                tableConfigurations={tableConfigurations}
+                lineType={lineType}
+              />
 
-          {/* Charts Component */}
-          <LineHourlyReportCharts
-            tableConfigurations={tableConfigurations}
-            lineType={lineType}
-          />
+              {/* Charts Component */}
+              <LineHourlyReportCharts
+                tableConfigurations={tableConfigurations}
+                lineType={lineType}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

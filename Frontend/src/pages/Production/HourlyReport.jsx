@@ -131,6 +131,7 @@ const HourlyReport = () => {
     fetchStages();
   }, []);
 
+  // Auto Refresh Logic
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchHourlyProduction, 300000); // auto-refresh every 5 min
