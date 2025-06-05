@@ -178,7 +178,7 @@ const LineHourlyReport = () => {
 
         case "forming":
           setFormingFOMAData(apiResults[0].data);
-          setFormingFOMBData([apiResults[1].data]);
+          setFormingFOMBData(apiResults[1].data);
           setFormingCategoryData(apiResults[2].data);
           break;
       }
@@ -217,16 +217,16 @@ const LineHourlyReport = () => {
     post_forming: {
       tables: [
         {
-          title: "Freezer A",
+          title: "Post Foam Frz A",
           data: postFormingFreezerAData,
         },
         {
-          title: "Freezer B",
+          title: "Post Foam Frz B",
           data: postFormingFreezerBData,
         },
 
         {
-          title: "SUS",
+          title: "Post Foam SUS",
           data: postFormingSUSData,
         },
 
@@ -354,9 +354,9 @@ const LineHourlyReport = () => {
                 </Button>
                 <ExportButton />
               </div>
-              <div className="text-left font-bold text-lg">
-                COUNT: <span className="text-blue-700">000</span>
-              </div>
+              {/* <div className="text-left font-bold text-lg">
+                COUNT: <span className="text-blue-700">0</span>
+              </div> */}
             </div>
           </div>
         </div>

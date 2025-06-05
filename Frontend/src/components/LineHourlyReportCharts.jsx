@@ -23,12 +23,12 @@ const LineHourlyReportCharts = ({ tableConfigurations, lineType }) => {
 
     const chartData = {
       labels: isCategory
-        ? data.map((item) => item.Category)
+        ? data.map((item) => item.category)
         : data.map((item) => `Hour ${item.TIMEHOUR}`),
       datasets: [
         {
           label: isCategory ? "Category Count" : "Hourly Count",
-          data: data.map((item) => item.COUNT || item.Count || 0),
+          data: data.map((item) => item.COUNT || item.TotalCount || 0),
           backgroundColor: getChartColor(title),
           borderRadius: 5,
         },

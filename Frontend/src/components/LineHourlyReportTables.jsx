@@ -4,7 +4,7 @@ const LineHourlyReportTables = ({ tableConfigurations, lineType }) => {
     // Calculate total count
     const totalCount =
       data &&
-      data.reduce((sum, item) => sum + (item.COUNT || item.Count || 0), 0);
+      data.reduce((sum, item) => sum + (item.COUNT || item.TotalCount || 0), 0);
 
     return (
       <div
@@ -55,10 +55,10 @@ const LineHourlyReportTables = ({ tableConfigurations, lineType }) => {
                       ) : (
                         <>
                           <td className="px-1 py-1 border">
-                            {item.Category || "N/A"}
+                            {item.category || "N/A"}
                           </td>
                           <td className="px-1 py-1 border">
-                            {item.Count || "N/A"}
+                            {item.TotalCount || "N/A"}
                           </td>
                         </>
                       )}

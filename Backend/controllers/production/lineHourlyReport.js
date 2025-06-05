@@ -12,30 +12,34 @@ export const getFinalHPFrz = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   try {
     const query = `
-    WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode 
-    INNER JOIN Users u ON a.Operator = u.UserCode 
-    WHERE a.StationCode = 1220010 
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    JOIN Users u ON b.Operator = u.UserCode
+    WHERE
+	 c.StationCode = 1220010 
     AND u.UserRole = '224006' 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
-) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
+)
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
   `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -53,30 +57,34 @@ export const getFinalHPChoc = async (req, res) => {
 
   try {
     const query = `
-    WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode 
-    INNER JOIN Users u ON a.Operator = u.UserCode 
-    WHERE a.StationCode = 1220010 
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    JOIN Users u ON b.Operator = u.UserCode
+    WHERE
+	 c.StationCode = 1220010 
     AND u.UserRole = '224007' 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
 ) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
 `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -93,28 +101,32 @@ export const getFinalHPSUS = async (req, res) => {
   const { StartTime, EndTime } = req.query;
 
   try {
-    const query = `WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode  
-    WHERE a.StationCode = 1230017 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
+    const query = `  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1230017  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
 ) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
 `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -132,17 +144,25 @@ export const getFinalHPCAT = async (req, res) => {
 
   try {
     const query = `
-    SELECT MC.Name AS [Category], COUNT(*) AS [Count]
-FROM MaterialBarcode AS MB
-INNER JOIN Material AS M ON MB.Material = M.MatCode
-INNER JOIN MaterialCategory AS MC ON M.Category = MC.CategoryCode
-INNER JOIN ProcessActivity AS PA ON MB.DocNo = PA.PSNo
-WHERE MB.Type IN (100, 400)
-AND MB.Status <> 99
-AND PA.StationCode IN (1220010, 1230017)
-AND PA.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
-AND PA.ActivityType = '5'
-GROUP BY MC.Name;
+WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+)
+SELECT 
+    ISNULL(mc.Alias, 'N/A') AS category,
+    COUNT(*) AS TotalCount
+FROM Psno
+JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+JOIN WorkCenter c ON b.StationCode = c.StationCode
+JOIN Users us ON us.UserCode = b.Operator
+JOIN Material m ON m.MatCode = Psno.Material
+LEFT JOIN MaterialCategory mc ON mc.CategoryCode = m.Category
+WHERE b.ActivityType = 5
+  AND c.StationCode IN (1220010, 1230017)  
+  AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
+GROUP BY ISNULL(mc.Alias, 'N/A')
+ORDER BY TotalCount DESC;
   `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -161,28 +181,32 @@ export const getPostHPFrzA = async (req, res) => {
 
   try {
     const query = `
-  WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode  
-    WHERE a.StationCode = 1220003 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
+   WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1220003  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
 ) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
   `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -200,28 +224,32 @@ export const getPostHPFrzB = async (req, res) => {
 
   try {
     const query = `
-  WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode  
-    WHERE a.StationCode = 1220004 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1220004  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
 ) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
   `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -239,28 +267,32 @@ export const getPostHPSUS = async (req, res) => {
 
   try {
     const query = `
-    WITH ProductionDetails AS (
-    SELECT a.PSNo, c.Name, b.Material, a.StationCode, a.ProcessCode, a.ActivityOn, 
-           DATEPART(HOUR, ActivityOn) AS TIMEHOUR, DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-           ActivityType, b.Type 
-    FROM ProcessActivity a 
-    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo 
-    INNER JOIN Material c ON b.Material = c.MatCode  
-    WHERE a.StationCode = 1230012 
-    AND a.ActivityType = 5 
-    AND a.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
-    AND b.Type NOT IN (0, 200)
-), 
-Summary AS (
-    SELECT pd.TIMEDAY, pd.TIMEHOUR, COUNT(pd.PSNo) AS Loading_Count 
-    FROM ProductionDetails pd 
-    GROUP BY pd.TIMEHOUR, pd.TIMEDAY 
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1230012  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
 ) 
-SELECT CONCAT('H', ROW_NUMBER() OVER(ORDER BY su.TIMEHOUR, su.TIMEDAY)) AS HOUR_NUMBER, 
-       su.TIMEHOUR, 
-       su.Loading_Count AS COUNT 
-FROM Summary su 
-ORDER BY su.TIMEHOUR;
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
   `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -278,17 +310,25 @@ export const getPostHPCAT = async (req, res) => {
 
   try {
     const query = `
-        SELECT MC.Name AS [Category], COUNT(*) AS [Count]
-          FROM MaterialBarcode AS MB
-            INNER JOIN Material AS M ON MB.Material = M.MatCode
-            INNER JOIN MaterialCategory AS MC ON M.Category = MC.CategoryCode
-            INNER JOIN ProcessActivity AS PA ON MB.DocNo = PA.PSNo
-          WHERE MB.Type IN (100, 400)
-            AND MB.Status <> 99
-            AND PA.StationCode IN (1220003, 1220004, 1230012)
-            AND PA.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
-            AND PA.ActivityType = '5'
-        GROUP BY MC.Name;
+ WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+)
+SELECT 
+    ISNULL(mc.Alias, 'N/A') AS category,
+    COUNT(*) AS TotalCount
+FROM Psno
+JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+JOIN WorkCenter c ON b.StationCode = c.StationCode
+JOIN Users us ON us.UserCode = b.Operator
+JOIN Material m ON m.MatCode = Psno.Material
+LEFT JOIN MaterialCategory mc ON mc.CategoryCode = m.Category
+WHERE b.ActivityType = 5
+  AND c.StationCode IN (1220003, 1220004, 1230012)   
+  AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
+GROUP BY ISNULL(mc.Alias, 'N/A')
+ORDER BY TotalCount DESC;
     `;
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -305,7 +345,34 @@ export const getPostHPCAT = async (req, res) => {
 export const getFormingHpFomA = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   try {
-    const query = ``;
+    const query = `
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1220001  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
+) 
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY;
+    `;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -321,7 +388,34 @@ export const getFormingHpFomA = async (req, res) => {
 export const getFormingHpFomB = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   try {
-    const query = ``;
+    const query = `
+  WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias, Type
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+),
+HourlySummary AS (
+    SELECT 
+        DATEPART(DAY, b.ActivityOn) AS TIMEDAY,
+        DATEPART(HOUR, b.ActivityOn) AS TIMEHOUR,
+        COUNT(*) AS Loading_Count
+    FROM Psno
+    JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+    JOIN WorkCenter c ON b.StationCode = c.StationCode
+    JOIN Material m ON Psno.Material = m.MatCode
+    WHERE
+	 c.StationCode = 1220002  
+    AND b.ActivityType = 5 
+    AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}' 
+	GROUP BY DATEPART(DAY, b.ActivityOn), DATEPART(HOUR, b.ActivityOn)
+) 
+SELECT 
+    CONCAT('H', ROW_NUMBER() OVER (ORDER BY TIMEHOUR, TIMEDAY)) AS HOUR_NUMBER,
+    TIMEHOUR,
+    Loading_Count AS COUNT
+FROM HourlySummary
+ORDER BY TIMEHOUR, TIMEDAY; 
+    `;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
@@ -337,7 +431,27 @@ export const getFormingHpFomB = async (req, res) => {
 export const getFormingHpFomCat = async (req, res) => {
   const { StartTime, EndTime } = req.query;
   try {
-    const query = ``;
+    const query = `
+WITH Psno AS (
+    SELECT DocNo, Material, Serial, VSerial, Alias
+    FROM MaterialBarcode
+    WHERE PrintStatus = 1 AND Status <> 99 AND Type NOT IN (200)
+)
+SELECT 
+    ISNULL(mc.Alias, 'N/A') AS category,
+    COUNT(*) AS TotalCount
+FROM Psno
+JOIN ProcessActivity b ON b.PSNo = Psno.DocNo
+JOIN WorkCenter c ON b.StationCode = c.StationCode
+JOIN Users us ON us.UserCode = b.Operator
+JOIN Material m ON m.MatCode = Psno.Material
+LEFT JOIN MaterialCategory mc ON mc.CategoryCode = m.Category
+WHERE b.ActivityType = 5
+  AND c.StationCode IN (1220001, 1220002)      
+  AND b.ActivityOn BETWEEN '{StartTime}' AND '{EndTime}'
+GROUP BY ISNULL(mc.Alias, 'N/A')
+ORDER BY TotalCount DESC;
+    `;
 
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
