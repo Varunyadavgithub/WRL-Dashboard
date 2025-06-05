@@ -54,7 +54,7 @@ const PostFormingCategoryCount = ({ title, data }) => {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(...data.map((item) => item.TotalCount || 0), 0) + 10,
+          max: Math.max(...data.map((item) => item.TotalCount || 0), 0) + 30,
         },
       },
     };

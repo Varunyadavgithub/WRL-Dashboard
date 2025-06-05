@@ -24,7 +24,7 @@ const FormingCategoryCount = ({ title, data }) => {
     const chartOptions = {
       responsive: true,
       maintainAspectRatio: false,
-         animation: {
+      animation: {
         onComplete: (animationContext) => {
           const chart = animationContext.chart;
           const ctx = chart.ctx;
@@ -54,7 +54,7 @@ const FormingCategoryCount = ({ title, data }) => {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(...data.map((item) => item.TotalCount || 0), 0) + 10,
+          max: Math.max(...data.map((item) => item.TotalCount || 0), 0) + 30,
         },
       },
     };

@@ -23,7 +23,7 @@ const FinalChoc = ({ title, data }) => {
     const chartOptions = {
       responsive: true,
       maintainAspectRatio: false,
-         animation: {
+      animation: {
         onComplete: (animationContext) => {
           const chart = animationContext.chart;
           const ctx = chart.ctx;
@@ -53,7 +53,7 @@ const FinalChoc = ({ title, data }) => {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(...data.map((item) => item.COUNT || 0), 0)+10,
+          max: Math.max(...data.map((item) => item.COUNT || 0), 0) + 10,
         },
       },
     };
@@ -109,7 +109,7 @@ const FinalChoc = ({ title, data }) => {
           </div>
         </div>
       </div>
-        {/* Chart Section */}
+      {/* Chart Section */}
       {chartData && (
         <div
           className="bg-white p-4 rounded shadow"

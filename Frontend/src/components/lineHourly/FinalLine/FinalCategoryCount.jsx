@@ -54,7 +54,7 @@ const FinalCategoryCount = ({ title, data }) => {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(...data.map((item) => item.TotalCount || 0), 10) + 10,
+          max: Math.max(...data.map((item) => item.TotalCount || 0), 10) + 30,
         },
       },
     };
