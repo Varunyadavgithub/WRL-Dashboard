@@ -13,7 +13,7 @@ This project is a powerful and scalable **internal web-based MES dashboard** dev
 
 It provides real-time, department-wise, and timeline-based reporting, used daily by multiple teams to track production, quality checks, planning, and dispatch activities.
 
-> ✅ Designed for 25+ different user roles across multiple factory departments  
+> ✅ Designed for 20+ different user roles across multiple factory departments  
 > 🧩 Connected to **three different Microsoft SQL Server databases**  
 > 🖥️ Replaces legacy desktop reporting tools with a modern React-based dashboard
 
@@ -27,7 +27,7 @@ It provides real-time, department-wise, and timeline-based reporting, used daily
   - Dispatch  
   - Planning  
 
-- 🔐 **Role-Based Access Control (25+ roles):**  
+- 🔐 **Role-Based Access Control (20+ roles):**  
   Every role sees only relevant reports, features, and filters.
 
 - 🗂 **Connected to multiple SQL Server databases:**  
@@ -155,7 +155,7 @@ App runs at: [http://localhost:5173](http://localhost:5173)
 
 | Feature                     | Description                                                         |
 | --------------------------- | ------------------------------------------------------------------- |
-| 🔒 Role-Based Access        | 25+ roles with custom UI & permissions                              |
+| 🔒 Role-Based Access        | 20+ roles with custom UI & permissions                              |
 | 🧩 Multi-SQL Server Support | Fetch data across multiple connected databases                      |
 | 📊 Department Dashboards    | View department-specific KPIs & reports (Production, Quality, etc.) |
 | 📅 Date Filters             | Daily, Monthly, Yearly filters with export features                 |
