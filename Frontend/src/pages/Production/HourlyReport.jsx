@@ -32,7 +32,7 @@ const HourlyReport = () => {
   const [hourlyModelCount, setHourlyModelCount] = useState([]);
   const [hourlyCategoryCount, setHourlyCategoryCount] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
-  const [lineType, setLineType] = useState(null);
+  const [lineType, setLineType] = useState("1");
 
   const fetchModel = async () => {
     try {
@@ -172,96 +172,99 @@ const HourlyReport = () => {
   }, [autoRefresh, stationCode, startTime, endTime]);
 
   // Chart Data
-  const hourLabels = hourData.map((item) => `${item.TIMEHOUR}:00`);
+  const prepareChartData = () => {
+    if (!hourData || hourData.length === 0) {
+      return { chartData: null, chartOptions: null };
+    }
 
-  const chartData = {
-    labels: hourLabels,
-    datasets: [
-      {
-        label: "Production Count",
-        data: hourData.map((item) => item.COUNT),
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
-        borderRadius: 5,
-      },
-    ],
-  };
+    const chartData = {
+      labels: hourData.map((item) => `${item.TIMEHOUR}:00`),
+      datasets: [
+        {
+          label: "Production Count",
+          data: hourData.map((item) => item.COUNT || 0),
+          backgroundColor: "rgba(54, 162, 235, 0.6)",
+          borderRadius: 5,
+        },
+      ],
+    };
 
-  // Calculate the maximum count value
-  const counts = hourData.map((item) => item.COUNT);
-  const maxCount = Math.max(...counts);
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        onComplete: (animationContext) => {
+          const chart = animationContext.chart;
+          const ctx = chart.ctx;
+          ctx.font = "12px sans-serif";
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "center";
 
-  const chartOptions = {
-    responsive: true,
-    animation: {
-      onComplete: (animationContext) => {
-        const chart = animationContext.chart;
-        const ctx = chart.ctx;
-        ctx.font = "12px sans-serif";
-        ctx.fillStyle = "#000";
-        ctx.textAlign = "center";
-
-        chart.data.datasets.forEach((dataset, i) => {
-          const meta = chart.getDatasetMeta(i);
-          meta.data.forEach((bar, index) => {
-            const value = dataset.data[index];
-            if (value !== null && value !== undefined) {
-              ctx.fillText(value, bar.x, bar.y - 6); // Display above bar
-            }
+          chart.data.datasets.forEach((dataset, i) => {
+            const meta = chart.getDatasetMeta(i);
+            meta.data.forEach((bar, index) => {
+              const value = dataset.data[index];
+              if (value !== null && value !== undefined) {
+                ctx.fillText(value, bar.x, bar.y - 6); // Display above bar
+              }
+            });
           });
-        });
+        },
       },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-      tooltip: {
-        enabled: true,
-      },
-    },
-    scales: {
-      x: {
-        title: {
+      plugins: {
+        legend: {
           display: true,
-          text: "Hour",
-          font: {
-            size: 16,
-            weight: "bold",
-            family: "font-playfair",
-          },
-          color: "#333",
         },
-        ticks: {
-          font: {
-            size: 12,
-            family: "font-playfair",
-          },
-          color: "#666",
+        tooltip: {
+          enabled: true,
         },
       },
-      y: {
-        beginAtZero: true,
-        max: maxCount + 10,
-        title: {
-          display: true,
-          text: "Count",
-          font: {
-            size: 16,
-            weight: "bold",
-            family: "font-playfair",
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Hour",
+            font: {
+              size: 16,
+              weight: "bold",
+              family: "font-playfair",
+            },
+            color: "#333",
           },
-          color: "#333",
+          ticks: {
+            font: {
+              size: 12,
+              family: "font-playfair",
+            },
+            color: "#666",
+          },
         },
-        ticks: {
-          font: {
-            size: 12,
-            family: "font-playfair",
+        y: {
+          beginAtZero: true,
+          max: Math.max(...hourData.map((item) => item.COUNT || 0), 10) + 10,
+          title: {
+            display: true,
+            text: "Count",
+            font: {
+              size: 16,
+              weight: "bold",
+              family: "font-playfair",
+            },
+            color: "#333",
           },
-          color: "#666",
+          ticks: {
+            font: {
+              size: 12,
+              family: "font-playfair",
+            },
+            color: "#666",
+          },
         },
       },
-    },
+    };
+    return { chartData, chartOptions };
   };
+  const { chartData, chartOptions } = prepareChartData();
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen rounded-lg">
@@ -415,7 +418,7 @@ const HourlyReport = () => {
 
               {/* Bar Graph */}
               <div className="bg-white p-4 rounded-lg shadow overflow-auto flex-1">
-                <Bar data={chartData} options={chartOptions} />
+                {chartData && <Bar data={chartData} options={chartOptions} />}
               </div>
             </div>
 

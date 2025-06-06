@@ -24,7 +24,7 @@ const FinalCategoryCount = ({ title, data }) => {
     const chartOptions = {
       responsive: true,
       maintainAspectRatio: false,
-         animation: {
+      animation: {
         onComplete: (animationContext) => {
           const chart = animationContext.chart;
           const ctx = chart.ctx;
