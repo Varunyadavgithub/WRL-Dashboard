@@ -21,7 +21,7 @@ const DispatchHold = () => {
   ];
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([]);
+  const [status, setStatus] = useState(Status[0]);
   const [assemblySerial, setAssemblySerial] = useState("");
   const [assemblySerialFile, setAssemblySerialFile] = useState("");
   const [modelName, setModelName] = useState("");
@@ -249,7 +249,7 @@ const DispatchHold = () => {
             <SelectField
               label="Status"
               options={Status}
-              value={Status.value}
+              value={status?.value || ""}
               onChange={(e) => {
                 const selected = Status.find(
                   (item) => item.value === e.target.value

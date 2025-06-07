@@ -22,85 +22,75 @@ export const getFpaCount = async (req, res) => {
     0,
     0
   );
-
-  // Report date: just today's date
-  const reportDateStr = `${now.getFullYear()}-${String(
-    now.getMonth() + 1
-  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+  const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
 
   const query = `
-    DECLARE @AdjustedStartDate DATETIME, @AdjustedEndDate DATETIME, @AdjustedReportDate DATETIME;
-
-    SET @AdjustedStartDate = DATEADD(MINUTE, 330, @StartDate);
-    SET @AdjustedEndDate = DATEADD(MINUTE, 330, @EndDate);
-
-    SET @AdjustedReportDate = DATEADD(MINUTE, 330, @ReportDate);
-
     WITH DUMDATA AS (
-        SELECT 
-            a.PSNo, 
-            c.Name, 
-            b.Material, 
-            a.StationCode, 
-            a.ProcessCode, 
-            a.ActivityOn, 
-            DATEPART(HOUR, ActivityOn) AS TIMEHOUR, 
-            DATEPART(DAY, ActivityOn) AS TIMEDAY, 
-            ActivityType, 
-            b.Type
-        FROM ProcessActivity a
-        INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo
-        INNER JOIN Material c ON b.Material = c.MatCode
-        WHERE
-            a.StationCode IN (1220010, 1230017)
-            AND a.ActivityType = 5
-            AND a.ActivityOn BETWEEN @AdjustedStartDate AND @AdjustedEndDate
-            AND b.Type NOT IN (0, 200)
-    ),
-    FPA_DATA AS (
-        SELECT 
-            dd.Name AS [ModelName],  
-            COUNT(dd.Name) AS ModelCount,
-            CASE 
-                WHEN COUNT(dd.Name) < 10 THEN 0
-                ELSE ((COUNT(dd.Name) - 1) / 100) + 1
-            END AS FPA
-        FROM DUMDATA dd
-        GROUP BY dd.Name
-    ),
-    FINAL_DATA AS (
-        SELECT 
-            fd.[ModelName], 
-            fd.ModelCount, 
-            fd.FPA,
-            ISNULL(fp.[SampleInspected], 0) AS [SampleInspected]
-        FROM FPA_DATA fd
-        LEFT JOIN (
-            SELECT 
-                Model, 
-                COUNT(DISTINCT(FGSRNo)) AS [SampleInspected]
-            FROM FPAReport
-            WHERE CAST(Date AS DATE) = CAST(@ReportDate AS DATE)
-            GROUP BY Model
-        ) fp ON fd.[ModelName] = fp.Model
-    )
     SELECT 
-        [ModelName], 
-        ModelCount, 
-        FPA, 
-        [SampleInspected]
-    FROM FINAL_DATA
-    WHERE FPA > 0
-    ORDER BY ModelCount;
+        a.PSNo, 
+        c.Name, 
+        b.Material, 
+        a.StationCode, 
+        a.ProcessCode, 
+        a.ActivityOn, 
+        DATEPART(HOUR, ActivityOn) AS TIMEHOUR, 
+        DATEPART(DAY, ActivityOn) AS TIMEDAY, 
+        ActivityType, 
+        b.Type
+    FROM ProcessActivity a
+    INNER JOIN MaterialBarcode b ON a.PSNo = b.DocNo
+    INNER JOIN Material c ON b.Material = c.MatCode
+    WHERE
+        a.StationCode IN (1220010, 1230017)
+        AND a.ActivityType = 5
+        AND a.ActivityOn BETWEEN @StartDate AND @EndDate
+        AND b.Type NOT IN (0, 200)
+),
+FPA_DATA AS (
+    SELECT 
+        dd.Name AS [ModelName],  
+        COUNT(dd.Name) AS ModelCount,
+        CASE 
+            WHEN COUNT(dd.Name) < 10 THEN 0
+            ELSE ((COUNT(dd.Name) - 1) / 100) + 1
+        END AS FPA
+    FROM DUMDATA dd
+    GROUP BY dd.Name
+),
+FINAL_DATA AS (
+    SELECT 
+        fd.[ModelName], 
+        fd.ModelCount, 
+        fd.FPA,
+        ISNULL(fp.[SampleInspected], 0) AS [SampleInspected]
+    FROM FPA_DATA fd
+    LEFT JOIN (
+        SELECT 
+            Model, 
+            COUNT(DISTINCT FGSRNo) AS [SampleInspected]
+        FROM FPAReport
+        WHERE [Date] BETWEEN @StartDate AND @EndDate
+        GROUP BY Model
+    ) fp ON fd.[ModelName] = fp.Model
+)
+SELECT 
+    [ModelName], 
+    ModelCount, 
+    FPA, 
+    [SampleInspected]
+FROM FINAL_DATA
+WHERE FPA > 0
+ORDER BY ModelCount;
+
   `;
 
   try {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-      .input("StartDate", sql.DateTime, startDate)
-      .input("EndDate", sql.DateTime, endDate)
-      .input("ReportDate", sql.DateTime, new Date(reportDateStr))
+      .input("StartDate", sql.DateTime, istStart)
+      .input("EndDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);
@@ -155,7 +145,6 @@ export const getAssetDetails = async (req, res) => {
 
 export const getFPQIDetails = async (req, res) => {
   const now = new Date();
-
   // Set start date: today at 08:00:00
   const startDate = new Date(
     now.getFullYear(),
@@ -182,6 +171,8 @@ export const getFPQIDetails = async (req, res) => {
   ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
     const query = `
     SELECT 
       COUNT(DISTINCT FGSRNo) AS TotalFGSRNo,
@@ -201,8 +192,8 @@ export const getFPQIDetails = async (req, res) => {
 
     const result = await pool
       .request()
-      .input("startDate", sql.DateTime, startDate)
-      .input("endDate", sql.DateTime, endDate)
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     if (!result.recordset.length) {
@@ -253,6 +244,9 @@ export const getFpaDefect = async (req, res) => {
   ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   try {
+    const istStart = new Date(new Date(startDate).getTime() + 330 * 60000);
+    const istEnd = new Date(new Date(endDate).getTime() + 330 * 60000);
+
     const query = `
     Select * from FPAReport where Date Between @StartDate and @EndDate
   `;
@@ -260,9 +254,8 @@ export const getFpaDefect = async (req, res) => {
     const pool = await new sql.ConnectionPool(dbConfig1).connect();
     const result = await pool
       .request()
-
-      .input("StartDate", sql.DateTime, startDate)
-      .input("EndDate", sql.DateTime, endDate)
+      .input("startDate", sql.DateTime, istStart)
+      .input("endDate", sql.DateTime, istEnd)
       .query(query);
 
     res.json(result.recordset);

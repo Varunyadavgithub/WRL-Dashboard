@@ -131,7 +131,7 @@ const HoldCabinateDetails = () => {
             <SelectField
               label="state"
               options={State}
-              value={State.value}
+              value={state.value}
               onChange={(e) => {
                 const selected = State.find(
                   (item) => item.value === e.target.value

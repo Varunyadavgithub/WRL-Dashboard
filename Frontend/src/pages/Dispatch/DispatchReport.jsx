@@ -140,7 +140,7 @@ const DispatchReport = () => {
             <SelectField
               label="Status"
               options={Status}
-              value={Status.value}
+              value={status.value}
               onChange={(e) => {
                 const selected = Status.find(
                   (item) => item.value === e.target.value

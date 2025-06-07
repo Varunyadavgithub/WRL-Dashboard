@@ -27,9 +27,8 @@ const FPA = () => {
   const [addManually, setAddManually] = useState(false);
   const [manualCategory, setManualCategory] = useState("");
   const [fpaDefectCategory, setFpaDefectCategory] = useState([]);
-  const [selectedFpaDefectCategory, setSelectedFpaDefectCategory] = useState(
-    []
-  );
+  const [selectedFpaDefectCategory, setSelectedFpaDefectCategory] =
+    useState(null);
   const [fpaCountData, setFpaCountData] = useState([]);
   const [assetDetails, setAssetDetails] = useState([]);
   const [fpqiDetails, setFpqiDetails] = useState([]);
@@ -276,7 +275,7 @@ const FPA = () => {
             <SelectField
               label="Category"
               options={DefectCategory}
-              value={DefectCategory.value}
+              value={selectedDefectCategory.value || ""}
               onChange={(e) => {
                 const selected = DefectCategory.find(
                   (item) => item.value === e.target.value
@@ -297,7 +296,7 @@ const FPA = () => {
             <SelectField
               label="Shift"
               options={Shift}
-              value={shift.value}
+              value={shift?.value || ""}
               onChange={(e) => {
                 const selected = Shift.find(
                   (item) => item.value === e.target.value
@@ -337,12 +336,12 @@ const FPA = () => {
                 <SelectField
                   label="Select Defect Category"
                   options={fpaDefectCategory}
-                  value={selectedFpaDefectCategory.values}
+                  value={selectedFpaDefectCategory?.value || ""}
                   onChange={(e) => {
-                    const selectedOption = fpaDefectCategory.find(
+                    const selected = fpaDefectCategory.find(
                       (option) => option.value === e.target.value
                     );
-                    setSelectedFpaDefectCategory(selectedOption);
+                    setSelectedFpaDefectCategory(selected);
                   }}
                 />
               )}
@@ -395,7 +394,10 @@ const FPA = () => {
                     <tbody>
                       {fpaDefect && fpaDefect.length > 0 ? (
                         fpaDefect.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">{item.SRNo}</td>
                             <td className="px-1 py-1 border">
                               {item.Date &&
@@ -446,7 +448,10 @@ const FPA = () => {
                     <tbody>
                       {fpaCountData && fpaCountData.length > 0 ? (
                         fpaCountData.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100 text-center">
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-100 text-center"
+                          >
                             <td className="px-1 py-1 border">
                               {item.ModelName}
                             </td>
