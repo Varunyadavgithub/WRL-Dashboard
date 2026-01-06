@@ -93,7 +93,7 @@ export const addAsset = async (req, res) => {
           .input("AssetID", sql.Int, assetId)
           .input("CalibratedOn", d.lastDate)
           .input("ValidTill", nextDate)
-          .input("PerformedBy", d.ownerEmployeeId || null)
+          .input("PerformedBy", d.owner_employee_id || null)
           .input("CalibrationAgency", d.agency || null)
           .input("Result", "Pass")
           .input("FilePath", filePath)
@@ -169,7 +169,7 @@ export const addAsset = async (req, res) => {
         .input("AssetID", sql.Int, newId)
         .input("CalibratedOn", d.lastDate)
         .input("ValidTill", nextDate)
-        .input("PerformedBy", d.ownerEmployeeId || null)
+        .input("PerformedBy", d.owner_employee_id || null)
         .input("CalibrationAgency", d.agency || null)
         .input("Result", "Pass")
         .input("FilePath", filePath)
@@ -204,34 +204,40 @@ export const uploadCalibrationReport = async (req, res) => {
 
     const pool = await sql.connect(dbConfig3);
 
-    // Get asset
-    const asset = await pool.request().input("ID", sql.Int, assetId).query(`
-        SELECT LastCalibrationDate, FrequencyMonths 
-        FROM CalibrationAssets 
-        WHERE ID=@ID
+    /* ================= GET ASSET ================= */
+    const assetRes = await pool
+      .request()
+      .input("ID", sql.Int, assetId)
+      .query(`
+        SELECT FrequencyMonths
+        FROM CalibrationAssets
+        WHERE ID = @ID
       `);
 
-    if (!asset.recordset.length) {
+    if (!assetRes.recordset.length) {
       return res.status(404).send("Asset not found");
     }
 
-    const lastDate = asset.recordset[0].LastCalibrationDate;
-    const freq = asset.recordset[0].FrequencyMonths;
+    const freq = assetRes.recordset[0].FrequencyMonths;
 
-    const nextDate = new Date(lastDate);
+    const calibratedOn = new Date(); // 🔑 NEW calibration date
+    const nextDate = new Date(calibratedOn);
     nextDate.setMonth(nextDate.getMonth() + freq);
 
-    // Insert history with REAL RESULT
-    await pool
+    /* ================= INSERT CALIBRATION HISTORY ================= */
+    const historyInsert = await pool
       .request()
       .input("AssetID", sql.Int, assetId)
-      .input("CalibratedOn", lastDate)
+      .input("CalibratedOn", calibratedOn)
       .input("ValidTill", nextDate)
       .input("PerformedBy", performedByEmpId)
       .input("CalibrationAgency", agency)
       .input("Result", result)
       .input("FilePath", file)
-      .input("EscalationLevel", result === "Fail" ? "Critical" : "Calibrated")
+      .input(
+        "EscalationLevel",
+        result === "Fail" ? "Critical" : "Calibrated"
+      )
       .query(`
         INSERT INTO CalibrationHistory
         (AssetID, CalibratedOn, ValidTill, PerformedBy,
@@ -241,18 +247,40 @@ export const uploadCalibrationReport = async (req, res) => {
          @CalibrationAgency, @Result, @FilePath, @EscalationLevel)
       `);
 
-    // Optional: update asset status
+    /* ================= UPDATE ASSET (RESET + NEW CYCLE) ================= */
     await pool
       .request()
-      .input("ID", assetId)
-      .input("Status", result === "Fail" ? "Out of Calibration" : "Calibrated")
+      .input("ID", sql.Int, assetId)
+      .input(
+        "Status",
+        result === "Fail" ? "Out of Calibration" : "Calibrated"
+      )
+      .input("LastCalibrationDate", calibratedOn)
+      .input("NextCalibrationDate", nextDate)
       .query(`
         UPDATE CalibrationAssets
-        SET Status=@Status
-        WHERE ID=@ID
+        SET
+          Status = @Status,
+          LastCalibrationDate = @LastCalibrationDate,
+          NextCalibrationDate = @NextCalibrationDate,
+          EscalationLevel = NULL,
+          LastEscalationSentOn = NULL
+        WHERE ID = @ID
       `);
 
-    res.send("Calibration report uploaded");
+    /* ================= CLOSE OLD ESCALATIONS ================= */
+    await pool
+      .request()
+      .input("AssetID", sql.Int, assetId)
+      .query(`
+        UPDATE CalibrationEscalationLog
+        SET Remarks = 'Resolved by new calibration',
+            TriggeredBy = 'SYSTEM'
+        WHERE AssetID = @AssetID
+          AND Remarks IS NULL
+      `);
+
+    res.send("Calibration report uploaded & escalation reset ✅");
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
     res.status(500).send("Upload failed");
@@ -337,20 +365,59 @@ export const addCalibrationRecord = async (req, res) => {
 export const getCertificates = async (req, res) => {
   try {
     const pool = await sql.connect(dbConfig3);
-    const data = await pool
-      .request()
-      .input("id", req.params.id)
-      .query(
-        `SELECT FilePath,CalibratedOn,ValidTill, Result,u.name AS EmployeeName,D.department_name ,CalibrationAgency,CreatedAt FROM CalibrationHistory CH
-            LEFT JOIN users U 
-            ON U.employee_id = ch.PerformedBy
-            LEFT JOIN departments D
-            ON D.DeptCode = u.department_id
-        WHERE AssetID=@id ORDER BY CreatedAt DESC`
-      );
 
-    res.json(data.recordset);
-  } catch {
+    const result = await pool
+      .request()
+      .input("AssetID", sql.Int, req.params.id)
+      .query(`
+        /* ================= CALIBRATION EVENTS ================= */
+        SELECT
+          CH.ID,
+          CH.AssetID,
+          CH.CreatedAt        AS EventTime,
+          'CALIBRATION'       AS EventType,
+          CH.Result,
+          CH.FilePath,
+          U.name              AS EmployeeName,
+          D.department_name,
+          NULL                AS EscalationLevel,
+          NULL                AS MailTo,
+          NULL                AS MailCC,
+          CH.CalibrationAgency,
+          CH.ValidTill
+        FROM CalibrationHistory CH
+        LEFT JOIN users U
+          ON U.employee_id = CH.PerformedBy
+        LEFT JOIN departments D
+          ON D.DeptCode = U.department_id
+        WHERE CH.AssetID = @AssetID
+
+        UNION ALL
+
+        /* ================= ESCALATION EVENTS ================= */
+        SELECT
+          EL.ID,
+          EL.AssetID,
+          EL.TriggeredOn      AS EventTime,
+          'ESCALATION'        AS EventType,
+          NULL                AS Result,
+          NULL                AS FilePath,
+          NULL                AS EmployeeName,
+          NULL                AS department_name,
+          CONCAT('L', EL.EscalationLevel) AS EscalationLevel,
+          EL.MailTo,
+          EL.MailCC,
+          NULL                AS CalibrationAgency,
+          NULL                AS ValidTill
+        FROM CalibrationEscalationLog EL
+        WHERE EL.AssetID = @AssetID
+
+        ORDER BY EventTime DESC
+      `);
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ History load error:", err);
     res.status(500).send("Error loading history");
   }
 };

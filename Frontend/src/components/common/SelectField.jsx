@@ -14,18 +14,19 @@ const SelectField = ({
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const filtered = options.filter((opt) => {
-      const label = typeof opt === "string" ? opt : opt.label;
-      return label?.toLowerCase().includes(search.toLowerCase());
-    });
-    setFilteredOptions(filtered);
+    setFilteredOptions(
+      options.filter((opt) => {
+        const lbl = typeof opt === "string" ? opt : opt.label;
+        return lbl?.toLowerCase().includes(search.toLowerCase());
+      })
+    );
   }, [search, options]);
 
-  // Close dropdown on click outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowOptions(false);
+        setSearch("");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -34,16 +35,18 @@ const SelectField = ({
 
   const handleSelect = (opt) => {
     const selectedValue = typeof opt === "string" ? opt : opt.value;
-    const event = { target: { name, value: selectedValue } };
-    onChange(event);
-    setSearch(""); // Reset search
+    onChange({ target: { name, value: selectedValue } });
     setShowOptions(false);
+    setSearch("");
   };
 
-  const selectedLabel =
-    options.find((opt) =>
+  const selectedLabel = (() => {
+    const found = options.find((opt) =>
       typeof opt === "string" ? opt === value : opt.value === value
-    )?.label || value;
+    );
+    if (!found) return "";
+    return typeof found === "string" ? found : found.label;
+  })();
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -51,7 +54,7 @@ const SelectField = ({
 
       <input
         type="text"
-        value={search || selectedLabel || ""}
+        value={showOptions ? search : selectedLabel}
         onChange={(e) => {
           setSearch(e.target.value);
           setShowOptions(true);
@@ -63,16 +66,16 @@ const SelectField = ({
 
       {showOptions && (
         <ul className="absolute z-50 w-full bg-white border mt-1 max-h-60 overflow-auto rounded-md shadow">
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((opt, idx) => {
-              const optionLabel = typeof opt === "string" ? opt : opt.label;
+          {filteredOptions.length ? (
+            filteredOptions.map((opt, i) => {
+              const lbl = typeof opt === "string" ? opt : opt.label;
               return (
                 <li
-                  key={idx}
+                  key={i}
                   className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
                   onClick={() => handleSelect(opt)}
                 >
-                  {optionLabel}
+                  {lbl}
                 </li>
               );
             })
