@@ -45,7 +45,11 @@ export const connectToDB = async (dbConfig) => {
   const key = `${dbConfig.server}_${dbConfig.database}`;
 
   if (pools.has(key)) {
+<<<<<<< HEAD
     console.log(`♻️ Reusing pool: ${dbConfig.database}`);
+=======
+    console.log(`?? Reusing pool: ${dbConfig.database}`);
+>>>>>>> 90161e40eb6b8d1a066c595c94abfca5c72ff15c
     return pools.get(key);
   }
 
@@ -55,6 +59,7 @@ export const connectToDB = async (dbConfig) => {
 
     pools.set(key, pool);
 
+<<<<<<< HEAD
     console.log(
       `✅ Connected to ${dbConfig.database} @ ${dbConfig.server}`
     );
@@ -65,6 +70,13 @@ export const connectToDB = async (dbConfig) => {
       `❌ DB connection failed: ${dbConfig.database}`,
       err
     );
+=======
+    console.log(`Connected to ${dbConfig.database} ---> ${dbConfig.server}`);
+
+    return pool;
+  } catch (err) {
+    console.error(`? DB connection failed: ${dbConfig.database}`, err);
+>>>>>>> 90161e40eb6b8d1a066c595c94abfca5c72ff15c
     throw err;
   }
 };
