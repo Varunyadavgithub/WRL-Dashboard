@@ -15,6 +15,8 @@ import {
   MdOutlineDisplaySettings,
 } from "react-icons/md";
 import { FaUserShield } from "react-icons/fa6";
+import { FaPeopleLine } from "react-icons/fa6";
+import { GrCompliance } from "react-icons/gr";
 import { useSelector } from "react-redux";
 
 // Define menu configurations
@@ -227,14 +229,31 @@ const MENU_CONFIG = [
       },
     ],
   },
-    {
+  {
     key: "Compliance",
-    icon: MdOutlineDisplaySettings,
+    icon: GrCompliance,
     label: "Compliance",
     items: [
       {
         path: "/compliance/calibiration",
-        label: "calibiration",
+        label: "Calibiration",
+        roles: ["admin"],
+      },
+    ],
+  },
+  {
+    key: "Training",
+    icon: FaPeopleLine,
+    label: "Training",
+    items: [
+      {
+        path: "/training/training-dashboard",
+        label: "Traning Dashboard",
+        roles: ["admin"],
+      },
+      {
+        path: "/training/training-detail",
+        label: "Traning Detail",
         roles: ["admin"],
       },
     ],
