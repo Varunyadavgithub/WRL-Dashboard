@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useSelector } from "react-redux";
+import TrainingDashboard from "./pages/Training/TrainingDashboard";
 
 // Lazy loaded components
 const Layout = lazy(() => import("./components/Layout"));
@@ -87,6 +88,11 @@ const LogisticsDisplay = lazy(() =>
 );
 
 const Calibiration = lazy(() => import("./pages/Compliance/Calibration"));
+
+const TraningDashboard = lazy(() =>
+  import("./pages/Training/TrainingDashboard")
+);
+const TraningDetail = lazy(() => import("./pages/Training/TrainingDetails"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -311,6 +317,19 @@ function App() {
               <Route
                 path="/compliance/calibiration"
                 element={<Calibiration />}
+              />
+            )}
+            {/*-------------------------------------------------------------- Traning --------------------------------------------------------------*/}
+            {canAccess(["admin"]) && (
+              <Route
+                path="/training/training-dashboard"
+                element={<TraningDashboard />}
+              />
+            )}
+            {canAccess(["admin"]) && (
+              <Route
+                path="/training/training-detail"
+                element={<TraningDetail />}
               />
             )}
             {/*-------------------------------------------------------------- Catch All --------------------------------------------------------------*/}
